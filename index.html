@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>智慧食譜助手</title>
     <style>
-        /* CSS 樣式保持不變，與之前提供的一致 */
-        /* ... 之前的 CSS 樣式全部複製到這裡 ... */
+        /* CSS 樣式與之前版本保持一致，確保大字體、高對比和簡潔佈局 */
         body {
             font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
             margin: 0;
@@ -57,7 +56,6 @@
 
         /* 掃描介面樣式 */
         #scan-area {
-            /* border: 2px dashed #ccc; */ /* 移除虛線框 */
             min-height: 250px;
             display: flex;
             justify-content: center;
@@ -305,38 +303,9 @@
         .favorite-btn:hover { background-color: #e0a800;}
         .shopping-btn { background-color: #17a2b8; }
         .shopping-btn:hover { background-color: #138496; }
-
-        /* 緊急聯絡按鈕（浮動） */
-        .emergency-button {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background-color: #dc3545; /* 紅色 */
-            color: white;
-            border-radius: 50%;
-            width: 80px;
-            height: 80px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.2em;
-            font-weight: bold;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            cursor: pointer;
-            z-index: 1000; /* 確保在最上層 */
-            line-height: 1.2;
-        }
-        .emergency-button:hover {
-            background-color: #c82333;
-        }
     </style>
 </head>
 <body>
-
-    <div class="emergency-button" onclick="alert('緊急聯絡：請設定您的緊急聯絡人！')">
-        緊急<br>聯絡
-    </div>
 
     <header class="top-nav" id="top-navbar" style="display: none;">
         <button onclick="goBack()">&lt;</button>
@@ -382,12 +351,23 @@
                 <div class="ingredient-tags" id="common-ingredients-tags">
                     <span class="ingredient-tag" onclick="selectTag('雞肉')">雞肉</span>
                     <span class="ingredient-tag" onclick="selectTag('豬肉')">豬肉</span>
+                    <span class="ingredient-tag" onclick="selectTag('牛肉')">牛肉</span>
+                    <span class="ingredient-tag" onclick="selectTag('魚')">魚</span>
+                    <span class="ingredient-tag" onclick="selectTag('蝦')">蝦</span>
                     <span class="ingredient-tag" onclick="selectTag('青菜')">青菜</span>
-                    <span class="ingredient-tag" onclick="selectTag('豆腐')">豆腐</span>
                     <span class="ingredient-tag" onclick="selectTag('番茄')">番茄</span>
+                    <span class="ingredient-tag" onclick="selectTag('馬鈴薯')">馬鈴薯</span>
+                    <span class="ingredient-tag" onclick="selectTag('洋蔥')">洋蔥</span>
+                    <span class="ingredient-tag" onclick="selectTag('豆腐')">豆腐</span>
                     <span class="ingredient-tag" onclick="selectTag('雞蛋')">雞蛋</span>
                     <span class="ingredient-tag" onclick="selectTag('米飯')">米飯</span>
                     <span class="ingredient-tag" onclick="selectTag('麵條')">麵條</span>
+                    <span class="ingredient-tag" onclick="selectTag('蘑菇')">蘑菇</span>
+                    <span class="ingredient-tag" onclick="selectTag('玉米')">玉米</span>
+                    <span class="ingredient-tag" onclick="selectTag('紅蘿蔔')">紅蘿蔔</span>
+                    <span class="ingredient-tag" onclick="selectTag('高麗菜')">高麗菜</span>
+                    <span class="ingredient-tag" onclick="selectTag('蒜')">蒜</span>
+                    <span class="ingredient-tag" onclick="selectTag('薑')">薑</span>
                     </div>
                 <button id="find-recipes-manual-btn">查找食譜</button>
             </div>
@@ -426,88 +406,112 @@
     </main>
 
     <script>
-        // JavaScript 用於控制頁面顯示邏輯、數據處理和互動
+        // !!重要：在生產環境中，絕不能將 API 金鑰直接寫在前端程式碼中。!!
+        // 這會導致金鑰洩露。應該透過後端代理調用 Gemini API。
+        const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"; // <<-- 在這裡替換成您的 Gemini API 金鑰
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_API_KEY}`;
 
-        // 當前顯示的頁面
+
         let currentPage = 'scan-page';
-        // 當前選中的食譜
         let currentRecipe = null;
-        // 當前食譜的步驟
         let currentRecipeSteps = [];
-        // 當前烹飪步驟索引
         let currentStepIndex = 0;
-        // 語音導覽開關
         let voiceGuideEnabled = false;
-
         let videoStream = null; // 用於儲存攝像頭串流
 
-        // 模擬數據庫 (實際會從後端獲取)
-        // 為了更精準的匹配，食材名稱需要統一和標準化
+        let identifiedIngredients = []; // 儲存已識別或手動添加的食材
+
+        // 擴充後的模擬食譜數據庫
+        // 注意：ingredients 列表中的食材名稱應盡量與 Gemini 識別出的或常用標籤的名稱一致，以便精準匹配
         const mockRecipes = [
             {
-                name: '回鍋肉',
-                ingredients: ['豬肉', '蒜苗', '豆瓣醬', '青椒', '薑', '蔥'], // 標準化食材名稱
-                difficulty: '中級',
-                time: '30分鐘',
-                health: '低油低鹽、家常菜',
-                intro: '將肥瘦相間的豬肉煮熟後切片，再與蒜苗、豆瓣醬等一同爆炒而成。',
-                image: 'https://via.placeholder.com/300x200?text=回鍋肉',
+                name: '香煎雞排',
+                ingredients: ['雞肉', '鹽', '黑胡椒', '橄欖油'],
+                difficulty: '初級',
+                time: '20分鐘',
+                health: '高蛋白、低脂',
+                intro: '簡單快速，外皮酥脆，肉質鮮嫩。',
+                image: 'https://via.placeholder.com/300x200?text=香煎雞排',
                 steps: [
-                    { number: 1, text: '將豬肉冷水下鍋，加入薑片、蔥段和少許料酒煮至八成熟，撈出放涼切薄片。', image: 'https://via.placeholder.com/400x300?text=煮肉', timer: null },
-                    { number: 2, text: '蒜苗洗淨切段，青椒切塊備用。', image: 'https://via.placeholder.com/400x300?text=切配料', timer: null },
-                    { number: 3, text: '鍋中不放油，放入肉片小火煸炒出油，至肉片邊緣捲曲微黃，盛出備用。', image: 'https://via.placeholder.com/400x300?text=煸炒肉片', timer: null },
-                    { number: 4, text: '利用鍋中餘油，放入豆瓣醬、甜麵醬炒出紅油，加入薑蒜末炒香。', image: 'https://via.placeholder.com/400x300?text=炒醬料', timer: null },
-                    { number: 5, text: '放入煸好的肉片、青椒、蒜苗翻炒均勻，加入少許生抽、白糖調味即可出鍋。', image: 'https://via.placeholder.com/400x300?text=翻炒出鍋', timer: null }
+                    { number: 1, text: '雞肉洗淨擦乾，用鹽和黑胡椒醃製15分鐘。', image: 'https://via.placeholder.com/400x300?text=醃製雞肉', timer: null },
+                    { number: 2, text: '鍋中倒入橄欖油燒熱，放入雞排，中火煎至兩面金黃熟透。', image: 'https://via.placeholder.com/400x300?text=煎雞排', timer: null }
                 ]
             },
             {
-                name: '番茄炒蛋',
-                ingredients: ['番茄', '雞蛋', '蔥'],
+                name: '紅燒肉',
+                ingredients: ['豬肉', '醬油', '冰糖', '薑', '蔥'],
+                difficulty: '中級',
+                time: '60分鐘',
+                health: '家常菜、濃郁',
+                intro: '肥而不膩，入口即化，經典美味。',
+                image: 'https://via.placeholder.com/300x200?text=紅燒肉',
+                steps: [
+                    { number: 1, text: '豬肉切塊焯水，去除血沫。薑切片，蔥切段。', image: 'https://via.placeholder.com/400x300?text=紅燒肉步驟1', timer: null },
+                    { number: 2, text: '鍋中放少許油，放入冰糖炒出糖色，加入豬肉塊翻炒上色。', image: 'https://via.placeholder.com/400x300?text=紅燒肉步驟2', timer: null },
+                    { number: 3, text: '加入醬油、薑、蔥和足量熱水，大火燒開轉小火燉煮40-50分鐘，至肉軟爛入味。', image: 'https://via.placeholder.com/400x300?text=紅燒肉步驟3', timer: '45分鐘' },
+                    { number: 4, text: '大火收汁至湯汁濃稠即可。', image: 'https://via.placeholder.com/400x300?text=紅燒肉步驟4', timer: null }
+                ]
+            },
+            {
+                name: '清蒸魚',
+                ingredients: ['魚', '薑', '蔥', '醬油', '食用油'],
+                difficulty: '中級',
+                time: '20分鐘',
+                health: '低脂、高蛋白、易消化',
+                intro: '保持魚肉鮮美原味，清淡健康。',
+                image: 'https://via.placeholder.com/300x200?text=清蒸魚',
+                steps: [
+                    { number: 1, text: '魚處理乾淨，兩面劃幾刀，魚身內外抹少許鹽。薑切片、蔥切段。', image: 'https://via.placeholder.com/400x300?text=清蒸魚步驟1', timer: null },
+                    { number: 2, text: '在魚身和魚肚中塞入薑片和蔥段。', image: 'https://via.placeholder.com/400x300?text=清蒸魚步驟2', timer: null },
+                    { number: 3, text: '水開後放入蒸鍋，大火蒸8-10分鐘，取出倒掉多餘湯汁。', image: 'https://via.placeholder.com/400x300?text=清蒸魚步驟3', timer: '10分鐘' },
+                    { number: 4, text: '淋上蒸魚豉油，燒熱少許油淋在魚身上即可。', image: 'https://via.placeholder.com/400x300?text=清蒸魚步驟4', timer: null }
+                ]
+            },
+            {
+                name: '蒜蓉炒高麗菜',
+                ingredients: ['高麗菜', '蒜', '鹽', '食用油'],
                 difficulty: '初級',
                 time: '15分鐘',
-                health: '高纖易消化、素食',
-                intro: '經典家常菜，番茄的酸甜與雞蛋的滑嫩完美結合。',
-                image: 'https://via.placeholder.com/300x200?text=番茄炒蛋',
+                health: '高纖維、素食',
+                intro: '簡單快速的家常蔬菜，清脆爽口。',
+                image: 'https://via.placeholder.com/300x200?text=蒜蓉高麗菜',
                 steps: [
-                    { number: 1, text: '番茄洗淨切塊，雞蛋打散加入少許鹽。', image: 'https://via.placeholder.com/400x300?text=準備番茄雞蛋', timer: null },
-                    { number: 2, text: '鍋中放油燒熱，倒入蛋液快速炒熟，盛出備用。', image: 'https://via.placeholder.com/400x300?text=炒蛋', timer: null },
-                    { number: 3, text: '鍋中再加少許油，放入番茄塊炒出汁，加入少許糖和鹽調味。', image: 'https://via.placeholder.com/400x300?text=炒番茄', timer: null },
-                    { number: 4, text: '倒入炒好的雞蛋，快速翻炒均勻，撒上蔥花即可。', image: 'https://via.placeholder.com/400x300?text=番茄雞蛋合炒', timer: null }
+                    { number: 1, text: '高麗菜洗淨，用手撕成小塊。蒜切末。', image: 'https://via.placeholder.com/400x300?text=蒜蓉高麗菜步驟1', timer: null },
+                    { number: 2, text: '鍋中放油燒熱，放入蒜末爆香。', image: 'https://via.placeholder.com/400x300?text=蒜蓉高麗菜步驟2', timer: null },
+                    { number: 3, text: '倒入高麗菜大火快速翻炒至斷生，加入鹽調味即可。', image: 'https://via.placeholder.com/400x300?text=蒜蓉高麗菜步驟3', timer: null }
                 ]
             },
             {
-                name: '家常豆腐',
-                ingredients: ['豆腐', '豬肉', '青椒', '紅蘿蔔', '木耳'],
-                difficulty: '中級',
-                time: '25分鐘',
-                health: '高蛋白、易消化',
-                intro: '一道經典的家常菜，豆腐滑嫩，配料豐富，營養美味。',
-                image: 'https://via.placeholder.com/300x200?text=家常豆腐',
-                steps: [
-                    { number: 1, text: '豆腐切片，用鹽水浸泡10分鐘後瀝乾。豬肉切片。青椒、紅蘿蔔、木耳切片。', image: 'https://via.placeholder.com/400x300?text=準備食材', timer: null },
-                    { number: 2, text: '鍋中放油，將豆腐煎至兩面金黃，盛出備用。', image: 'https://via.placeholder.com/400x300?text=煎豆腐', timer: null },
-                    { number: 3, text: '鍋中再放少許油，放入豬肉片炒至變色，加入薑蒜爆香。', image: 'https://via.placeholder.com/400x300?text=炒肉片', timer: null },
-                    { number: 4, text: '加入青椒、紅蘿蔔、木耳翻炒至斷生，然後加入煎好的豆腐。', image: 'https://via.placeholder.com/400x300?text=放入配料', timer: null },
-                    { number: 5, text: '調入生抽、老抽、蠔油、少許糖和水，煮至湯汁濃稠，勾薄芡即可。', image: 'https://via.placeholder.com/400x300?text=勾芡', timer: null }
-                ]
-            },
-             {
-                name: '清炒時蔬',
-                ingredients: ['青菜', '蒜'],
+                name: '玉米蛋花湯',
+                ingredients: ['玉米', '雞蛋', '蔥', '鹽'],
                 difficulty: '初級',
                 time: '10分鐘',
-                health: '高纖維、低脂',
-                intro: '簡單快速的健康家常菜，保留蔬菜的清甜。',
-                image: 'https://via.placeholder.com/300x200?text=清炒時蔬',
+                health: '易消化、營養',
+                intro: '簡單清甜的家常湯品，老少皆宜。',
+                image: 'https://via.placeholder.com/300x200?text=玉米蛋花湯',
                 steps: [
-                    { number: 1, text: '青菜洗淨瀝乾，大蒜切片。', image: 'https://via.placeholder.com/400x300?text=準備青菜', timer: null },
-                    { number: 2, text: '鍋中放油燒熱，放入蒜片爆香。', image: 'https://via.placeholder.com/400x300?text=爆香蒜片', timer: null },
-                    { number: 3, text: '倒入青菜大火快速翻炒至斷生，加入鹽調味即可出鍋。', image: 'https://via.placeholder.com/400x300?text=快炒青菜', timer: null }
+                    { number: 1, text: '玉米粒洗淨，雞蛋打散。蔥切蔥花。', image: 'https://via.placeholder.com/400x300?text=玉米蛋花湯步驟1', timer: null },
+                    { number: 2, text: '鍋中加入適量水燒開，放入玉米粒煮3分鐘。', image: 'https://via.placeholder.com/400x300?text=玉米蛋花湯步驟2', timer: '3分鐘' },
+                    { number: 3, text: '緩緩倒入蛋液，攪拌成蛋花。加入鹽調味，撒上蔥花即可。', image: 'https://via.placeholder.com/400x300?text=玉米蛋花湯步驟3', timer: null }
+                ]
+            },
+            {
+                name: '香菇滑雞飯',
+                ingredients: ['雞肉', '香菇', '米飯', '醬油', '薑'],
+                difficulty: '中級',
+                time: '40分鐘',
+                health: '均衡營養、一鍋到底',
+                intro: '香濃美味，簡單方便的主食。',
+                image: 'https://via.placeholder.com/300x200?text=香菇滑雞飯',
+                steps: [
+                    { number: 1, text: '雞肉切塊，香菇泡軟切片，薑切絲。米洗淨。', image: 'https://via.placeholder.com/400x300?text=香菇滑雞飯步驟1', timer: null },
+                    { number: 2, text: '雞肉、香菇用醬油、薑絲醃製15分鐘。', image: 'https://via.placeholder.com/400x300?text=香菇滑雞飯步驟2', timer: null },
+                    { number: 3, text: '將米和適量水放入電鍋，鋪上醃好的雞肉和香菇，啟動煮飯模式。', image: 'https://via.placeholder.com/400x300?text=香菇滑雞飯步驟3', timer: '煮飯時間' },
+                    { number: 4, text: '飯煮好後攪拌均勻即可享用。', image: 'https://via.placeholder.com/400x300?text=香菇滑雞飯步驟4', timer: null }
                 ]
             }
-            // 可以添加更多食譜，確保 `ingredients` 列表中的食材名稱與手動輸入或識別的名稱一致
+            // 請在這裡添加更多食譜，確保食材名稱標準化
         ];
-        let identifiedIngredients = []; // 儲存已識別或手動添加的食材
 
         // --- 頁面導航和顯示邏輯 ---
         function showPage(pageId) {
@@ -518,7 +522,7 @@
             currentPage = pageId;
 
             // 控制頂部導航欄的顯示
-            if (pageId === 'recipe-detail-page' || pageId === 'recipe-list-page') { // 食譜列表頁面也顯示導航欄
+            if (pageId === 'recipe-detail-page' || pageId === 'recipe-list-page') {
                 document.getElementById('top-navbar').style.display = 'flex';
             } else {
                 document.getElementById('top-navbar').style.display = 'none';
@@ -531,8 +535,8 @@
                 const videoElement = document.getElementById('camera-stream');
                 videoElement.srcObject = null;
                 videoElement.style.display = 'none';
-                document.getElementById('take-photo-btn').style.display = 'none'; // 隱藏拍照按鈕
-                document.getElementById('scan-overlay-text').style.display = 'block'; // 顯示引導文字
+                document.getElementById('take-photo-btn').style.display = 'none';
+                document.getElementById('scan-overlay-text').style.display = 'block';
             }
         }
 
@@ -547,7 +551,6 @@
                 identifiedIngredients = []; // 清空數組
                 document.getElementById('ingredients-display').textContent = '';
             }
-            // 更多返回邏輯可以加在這裡
         }
 
         // --- 攝像頭功能 ---
@@ -559,13 +562,13 @@
 
         document.getElementById('start-camera-btn').addEventListener('click', () => {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }) // 嘗試使用後置攝像頭
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
                     .then(stream => {
-                        videoStream = stream; // 保存串流
+                        videoStream = stream;
                         video.srcObject = stream;
                         video.style.display = 'block';
                         takePhotoBtn.style.display = 'block';
-                        scanOverlayText.style.display = 'none'; // 隱藏引導文字
+                        scanOverlayText.style.display = 'none';
                         speakText('攝像頭已開啟，請將食材對準鏡頭。');
                     })
                     .catch(error => {
@@ -579,35 +582,102 @@
             }
         });
 
-        takePhotoBtn.addEventListener('click', () => {
+        takePhotoBtn.addEventListener('click', async () => {
             if (videoStream) {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const imageDataUrl = canvas.toDataURL('image/jpeg');
+                const imageDataUrl = canvas.toDataURL('image/jpeg'); // 獲取 Base64 圖片數據
 
-                // 實際應用中，這裡會將 imageDataUrl 發送到後端進行圖像識別
-                // 例如：fetch('/api/recognize_ingredient', { method: 'POST', body: imageDataUrl })
-                // 為了演示，我們這裡模擬一個識別結果
-                simulateIngredientRecognition(imageDataUrl);
-                speakText('正在識別食材，請稍候。');
+                // 將 Data URL 轉換為純 Base64 字符串 (去除 "data:image/jpeg;base64,")
+                const base64Image = imageDataUrl.split(',')[1];
+
+                speakText('正在識別食材，這可能需要一些時間。');
+                try {
+                    const recognizedItems = await recognizeIngredientsWithGemini(base64Image);
+                    if (recognizedItems.length > 0) {
+                        recognizedItems.forEach(item => {
+                            // 將識別結果標準化，例如去除量詞，只保留食材名
+                            const standardizedItem = item.replace(/(\d+克|\d+個|\d+斤|\d+把|少許|適量|半|一塊|一根|一顆)/g, '').trim();
+                            if (standardizedItem && !identifiedIngredients.includes(standardizedItem)) {
+                                identifiedIngredients.push(standardizedItem);
+                            }
+                        });
+                        updateIdentifiedIngredientsDisplay();
+                        speakText(`已識別到：${recognizedItems.join('、')}。`);
+                    } else {
+                        speakText('沒有識別到明顯的食材，請嘗試更清晰的圖片。');
+                        alert('沒有識別到明顯的食材，請嘗試更清晰的圖片。');
+                    }
+                } catch (error) {
+                    console.error('Gemini 識別失敗：', error);
+                    speakText('識別食材時發生錯誤，請稍後再試或嘗試手動輸入。');
+                    alert('識別食材時發生錯誤，請稍後再試或嘗試手動輸入。');
+                }
             } else {
                 alert('請先開啟攝像頭！');
             }
         });
 
-        function simulateIngredientRecognition(imageDataUrl) {
-            // 模擬圖像識別結果
-            // 在真實應用中，這裡會是 API 調用和結果解析
-            const recognized = ['雞肉', '馬鈴薯', '紅蘿蔔'][Math.floor(Math.random() * 3)]; // 隨機模擬一個結果
-
-            // 確保不重複添加
-            if (!identifiedIngredients.includes(recognized)) {
-                identifiedIngredients.push(recognized);
+        // --- Gemini 圖像識別功能 ---
+        async function recognizeIngredientsWithGemini(base64Image) {
+            if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GEMINI_API_KEY") {
+                console.error("Gemini API Key 未設定或為預設值。請替換為您的實際金鑰。");
+                alert("Gemini API Key 未設定，識別功能無法使用。");
+                return [];
             }
-            updateIdentifiedIngredientsDisplay();
-            speakText(`已識別到 ${recognized}。`);
+
+            const prompt = "請列出圖片中所有可以作為食物的食材名稱，只列出食材的中文名，用逗號分隔，不需要多餘的描述。例如：雞肉,馬鈴薯,番茄";
+
+            const requestBody = {
+                contents: [
+                    {
+                        parts: [
+                            { text: prompt },
+                            {
+                                inlineData: {
+                                    mimeType: "image/jpeg",
+                                    data: base64Image
+                                }
+                            }
+                        ]
+                    }
+                ]
+            };
+
+            try {
+                const response = await fetch(GEMINI_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("Gemini API 錯誤:", errorData);
+                    throw new Error(`Gemini API 回應錯誤: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+                }
+
+                const data = await response.json();
+                console.log("Gemini 回應:", data);
+
+                const textOutput = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+
+                if (textOutput) {
+                    // 將 Gemini 返回的食材名稱字符串解析為數組
+                    // 假設 Gemini 返回 "雞肉,番茄,青菜" 這樣的格式
+                    return textOutput.split(',').map(item => item.trim());
+                } else {
+                    return [];
+                }
+            } catch (error) {
+                console.error("調用 Gemini API 時發生錯誤:", error);
+                throw error;
+            }
         }
+
 
         function updateIdentifiedIngredientsDisplay() {
             const displayElement = document.getElementById('ingredients-display');
@@ -669,40 +739,25 @@
         });
 
 
-        // --- 食譜列表介面功能 (強化篩選邏輯) ---
-        function findRecipes(ingredients) {
+        // --- 食譜列表介面功能 (強化篩選邏輯，確保精準匹配) ---
+        function findRecipes(providedIngredients) {
             const recipesContainer = document.getElementById('recipes-container');
-            recipesContainer.innerHTML = ''; // 清空之前的內容
+            recipesContainer.innerHTML = '';
 
+            const lowerCaseProvidedIngredients = providedIngredients.map(ing => ing.toLowerCase());
+
+            // 更嚴格的過濾邏輯：
+            // 只有當食譜的 "所有" 主要食材都可以在 "providedIngredients" 中找到時，才推薦該食譜。
+            // 這樣可以避免出現不屬於指定食材的食譜。
             const foundRecipes = mockRecipes.filter(recipe => {
-                // 檢查食譜的每個主要食材是否至少有一個存在於已識別/輸入的食材中
-                // 這裡實現的是「只要有任一主要食材匹配」就顯示的寬鬆策略
-                // 如果需要「所有主要食材都必須匹配」，則需要更嚴格的邏輯
-                return recipe.ingredients.some(recipeIng =>
-                    ingredients.some(identifiedIng =>
-                        // 將兩邊都轉為小寫再比對，增加彈性
-                        recipeIng.toLowerCase().includes(identifiedIng.toLowerCase())
-                    )
+                return recipe.ingredients.every(recipeIng =>
+                    lowerCaseProvidedIngredients.includes(recipeIng.toLowerCase())
                 );
             });
 
-            // 如果需要更嚴格的「必須至少包含X種或Y種關鍵食材」才能顯示的邏輯
-            // 或者「不能包含未指定的食材」的邏輯，這裡需要進一步複雜化篩選條件
-            // 例如：
-            // const strictRecipes = mockRecipes.filter(recipe => {
-            //    // 判斷這個食譜是否只使用了已提供的食材，並且至少匹配一個主要食材
-            //    const recipeHasProvidedIngredients = recipe.ingredients.every(recipeIng =>
-            //        ingredients.some(identifiedIng => identifiedIng.toLowerCase().includes(recipeIng.toLowerCase()))
-            //    );
-            //    const recipeUsesAtLeastOneProvidedIngredient = recipe.ingredients.some(recipeIng =>
-            //        ingredients.some(identifiedIng => identifiedIng.toLowerCase().includes(recipeIng.toLowerCase()))
-            //    );
-            //    return recipeHasProvidedIngredients && recipeUsesAtLeastOneProvidedIngredient;
-            // });
-
             if (foundRecipes.length === 0) {
-                recipesContainer.innerHTML = '<p style="text-align: center; font-size: 1.5em; color: #666;">抱歉，沒有找到符合您目前食材的食譜。您可以嘗試添加更多食材或放寬搜尋條件。</p>';
-                speakText('抱歉，沒有找到符合您目前食材的食譜。您可以嘗試添加更多食材或放寬搜尋條件。');
+                recipesContainer.innerHTML = '<p style="text-align: center; font-size: 1.5em; color: #666;">抱歉，沒有找到完全符合您目前食材的食譜。您可以嘗試添加更多食材或放寬搜尋條件。</p>';
+                speakText('抱歉，沒有找到完全符合您目前食材的食譜。您可以嘗試添加更多食材或放寬搜尋條件。');
             } else {
                 // 可以根據匹配度或其他因素進行排序，這裡暫時維持原順序
                 foundRecipes.forEach(recipe => {
@@ -734,7 +789,7 @@
             currentStepIndex = 0;
 
             document.getElementById('recipe-title-display').textContent = recipe.name;
-            document.getElementById('nav-title').textContent = recipe.name; // 更新頂部導航標題
+            document.getElementById('nav-title').textContent = recipe.name;
             document.getElementById('recipe-ingredients-display').textContent = recipe.ingredients.join('、');
             document.getElementById('recipe-difficulty-display').textContent = recipe.difficulty;
             document.getElementById('recipe-time-display').textContent = recipe.time;
@@ -748,7 +803,7 @@
 
         function displayStep(index) {
             const stepsContainer = document.getElementById('recipe-steps-container');
-            stepsContainer.innerHTML = ''; // 清空所有步驟
+            stepsContainer.innerHTML = '';
 
             if (index >= 0 && index < currentRecipeSteps.length) {
                 const step = currentRecipeSteps[index];
@@ -764,11 +819,9 @@
                 `;
                 stepsContainer.appendChild(stepDiv);
 
-                // 更新導航按鈕狀態
                 document.querySelector('.nav-back').disabled = (index === 0);
                 document.querySelector('.nav-next').disabled = (index === currentRecipeSteps.length - 1);
 
-                // 語音提示當前步驟
                 speakText(`步驟 ${step.number}：${step.text}`);
             }
         }
@@ -793,6 +846,8 @@
         // --- 語音提示功能 ---
         function speakText(text) {
             if (voiceGuideEnabled && 'speechSynthesis' in window) {
+                // 停止任何正在播放的語音，避免重疊
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'zh-HK'; // 設定粵語或中文
                 window.speechSynthesis.speak(utterance);
@@ -807,6 +862,7 @@
                 speakText('語音導覽已開啟。');
             } else {
                 voiceButton.textContent = '🔇';
+                window.speechSynthesis.cancel(); // 關閉語音時停止播放
                 speakText('語音導覽已關閉。');
             }
         }
