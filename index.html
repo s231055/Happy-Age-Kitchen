@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧食譜助手</title>
+    <style>
+        /* 這裡放基本的 CSS 樣式，確保大字體和高對比 */
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* 淺灰色背景 */
+            color: #333; /* 深灰色文字 */
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #0056b3; /* 標題藍色 */
+            text-align: center;
+            font-size: 2.5em; /* 大字體 */
+            margin-bottom: 20px;
+        }
+        button {
+            display: block;
+            width: 80%;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px 30px;
+            font-size: 1.8em; /* 大按鈕文字 */
+            background-color: #28a745; /* 綠色按鈕 */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        .section {
+            display: none; /* 預設隱藏，透過 JS 顯示 */
+            padding: 20px 0;
+        }
+        .section.active {
+            display: block; /* 顯示當前活躍的區塊 */
+        }
+
+        /* 掃描介面樣式 */
+        #scan-area {
+            border: 2px dashed #ccc;
+            min-height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #666;
+        }
+        #scan-area .icon {
+            font-size: 4em; /* 大圖示 */
+            margin-bottom: 10px;
+        }
+        #identified-ingredients {
+            margin-top: 20px;
+            font-size: 1.4em;
+            text-align: center;
+            color: #0056b3;
+            font-weight: bold;
+        }
+        .ingredient-input-group {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .ingredient-input-group label {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .ingredient-input-group input[type="text"] {
+            width: 70%;
+            padding: 15px;
+            font-size: 1.3em;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .ingredient-tags {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .ingredient-tag {
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .ingredient-tag:hover {
+            background-color: #d1d8df;
+        }
+
+
+        /* 食譜列表樣式 */
+        .recipe-list {
+            display: grid;
+            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        .recipe-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+        .recipe-card:hover {
+            transform: translateY(-5px);
+        }
+        .recipe-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid #ddd;
+        }
+        .recipe-card-content {
+            padding: 15px;
+        }
+        .recipe-card h3 {
+            font-size: 1.6em;
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #333;
+            text-align: left;
+        }
+        .recipe-card p {
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .recipe-card .tags span {
+            display: inline-block;
+            background-color: #e0f7fa;
+            color: #00796b;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        /* 食譜步驟樣式 */
+        #recipe-title-display {
+            font-size: 2.2em;
+            text-align: center;
+            color: #0056b3;
+            margin-bottom: 30px;
+        }
+        .recipe-step {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .step-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #e67e22; /* 橙色數字 */
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .step-image img {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: contain; /* 圖片完整顯示 */
+            display: block;
+            margin: 0 auto 20px auto;
+            border-radius: 8px;
+        }
+        .step-text {
+            font-size: 1.8em; /* 烹飪步驟大字體 */
+            color: #333;
+            text-align: center;
+        }
+        .step-timer {
+            font-size: 1.5em;
+            color: #c0392b; /* 紅色計時器 */
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+        .navigation-buttons button {
+            width: 45%;
+            margin: 0;
+        }
+        .nav-back { background-color: #6c757d; }
+        .nav-back:hover { background-color: #5a6268; }
+        .nav-next { background-color: #007bff; }
+        .nav-next:hover { background-color: #0056b3; }
+
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #007bff;
+            color: white;
+            font-size: 1.5em;
+        }
+        .top-nav button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8em;
+            cursor: pointer;
+            margin: 0;
+            padding: 0 10px;
+            width: auto;
+            max-width: none;
+            box-shadow: none;
+        }
+        .top-nav button:hover {
+            opacity: 0.8;
+        }
+        .top-nav .title {
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        /* 收藏和購物清單按鈕 */
+        .bottom-actions {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+        .bottom-actions button {
+            width: 48%;
+            margin: 0;
+            padding: 15px;
+            font-size: 1.5em;
+        }
+        .favorite-btn { background-color: #ffc107; color: #333;}
+        .favorite-btn:hover { background-color: #e0a800;}
+        .shopping-btn { background-color: #17a2b8; }
+        .shopping-btn:hover { background-color: #138496; }
+
+        /* 緊急聯絡按鈕（浮動） */
+        .emergency-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #dc3545; /* 紅色 */
+            color: white;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 1000; /* 確保在最上層 */
+            line-height: 1.2;
+        }
+        .emergency-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="emergency-button" onclick="alert('緊急聯絡：請設定您的緊急聯絡人！')">
+        緊急<br>聯絡
+    </div>
+
+    <header class="top-nav" id="top-navbar" style="display: none;">
+        <button onclick="goBack()">&lt;</button>
+        <div class="title" id="nav-title">食譜名稱</div>
+        <button onclick="toggleVoiceGuide()">🔊</button>
+    </header>
+
+    <main class="container">
+        <section id="scan-page" class="section active">
+            <h1>智慧食譜助手</h1>
+            <button id="start-scan-btn">
+                點擊掃描食材
+                <div class="icon">📸</div>
+            </button>
+
+            <div id="scan-area">
+                <span class="icon">🔍</span>
+                <p>請將食材對準鏡頭</p>
+                <p>保持光線充足與影像清晰</p>
+            </div>
+            <div id="identified-ingredients" style="display: none;">
+                <p>已識別食材：<span id="ingredients-display">雞肉、紅蘿蔔</span></p>
+            </div>
+
+            <button id="confirm-ingredients-btn" style="display: none;">確認食材，尋找食譜</button>
+
+            <div class="ingredient-input-group">
+                <label for="manual-ingredient-input">手動輸入食材 (若掃描不便)</label>
+                <input type="text" id="manual-ingredient-input" placeholder="例如：雞蛋、米飯">
+                <button onclick="addManualIngredient()">加入食材</button>
+            </div>
+
+            <div class="ingredient-input-group">
+                <label>或從常用食材中選擇：</label>
+                <div class="ingredient-tags">
+                    <span class="ingredient-tag" onclick="selectTag('雞肉')">雞肉</span>
+                    <span class="ingredient-tag" onclick="selectTag('豬肉')">豬肉</span>
+                    <span class="ingredient-tag" onclick="selectTag('青菜')">青菜</span>
+                    <span class="ingredient-tag" onclick="selectTag('豆腐')">豆腐</span>
+                    <span class="ingredient-tag" onclick="selectTag('番茄')">番茄</span>
+                    <span class="ingredient-tag" onclick="selectTag('雞蛋')">雞蛋</span>
+                    <span class="ingredient-tag" onclick="selectTag('米飯')">米飯</span>
+                    <span class="ingredient-tag" onclick="selectTag('麵條')">麵條</span>
+                    </div>
+                <button id="find-recipes-manual-btn">查找食譜</button>
+            </div>
+        </section>
+
+        <section id="recipe-list-page" class="section">
+            <h2>推薦食譜</h2>
+            <div class="recipe-list" id="recipes-container">
+                <div class="recipe-card" onclick="showRecipeDetail('回鍋肉', 'pig', '主食', '中級', '30分鐘', '低油低鹽', '將肥瘦相間的豬肉煮熟後切片，再與蒜苗、豆瓣醬等一同爆炒而成。', 'images/huiguorou.jpg', '烹飪步驟詳細內容...')">
+                    <img src="https://via.placeholder.com/300x200?text=回鍋肉" alt="回鍋肉">
+                    <div class="recipe-card-content">
+                        <h3>回鍋肉</h3>
+                        <p>主要食材：豬肉、蒜苗、豆瓣醬</p>
+                        <p>難度：中級 | 時間：30分鐘</p>
+                        <div class="tags">
+                            <span>低油低鹽</span>
+                            <span>家常菜</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="recipe-card" onclick="showRecipeDetail('番茄炒蛋', 'tomato', '主食', '初級', '15分鐘', '高纖易消化', '經典家常菜，番茄的酸甜與雞蛋的滑嫩完美結合。', 'images/tomatosegg.jpg', '烹飪步驟詳細內容...')">
+                    <img src="https://via.placeholder.com/300x200?text=番茄炒蛋" alt="番茄炒蛋">
+                    <div class="recipe-card-content">
+                        <h3>番茄炒蛋</h3>
+                        <p>主要食材：番茄、雞蛋</p>
+                        <p>難度：初級 | 時間：15分鐘</p>
+                        <div class="tags">
+                            <span>高纖易消化</span>
+                            <span>素食</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="recipe-detail-page" class="section">
+            <h2 id="recipe-title-display"></h2>
+            <div class="recipe-info">
+                <p><strong>所需食材：</strong><span id="recipe-ingredients-display"></span></p>
+                <p><strong>烹飪難度：</strong><span id="recipe-difficulty-display"></span></p>
+                <p><strong>預計時間：</strong><span id="recipe-time-display"></span></p>
+                <p><strong>健康提示：</strong><span id="recipe-health-display"></span></p>
+                <p><strong>簡介：</strong><span id="recipe-intro-display"></span></p>
+            </div>
+            <hr>
+            <h3>烹飪步驟</h3>
+            <div id="recipe-steps-container">
+                <div class="recipe-step" id="step-1">
+                    <div class="step-number">步驟 1</div>
+                    <div class="step-image">
+                        <img src="https://via.placeholder.com/400x300?text=準備食材" alt="步驟1圖片">
+                    </div>
+                    <div class="step-text">將所有食材清洗乾淨，並切成適合烹飪的大小。</div>
+                    <div class="step-timer" style="display: none;"></div>
+                </div>
+                <div class="recipe-step" id="step-2">
+                    <div class="step-number">步驟 2</div>
+                    <div class="step-image">
+                        <img src="https://via.placeholder.com/400x300?text=熱鍋下油" alt="步驟2圖片">
+                    </div>
+                    <div class="step-text">鍋中倒入適量食用油，燒熱至油溫七成熱。</div>
+                    <div class="step-timer" style="display: none;"></div>
+                </div>
+            </div>
+
+            <div class="navigation-buttons">
+                <button class="nav-back" onclick="prevStep()">上一步</button>
+                <button class="nav-next" onclick="nextStep()">下一步</button>
+            </div>
+
+            <div class="bottom-actions">
+                <button class="favorite-btn" onclick="addToFavorites()">⭐ 加入最愛</button>
+                <button class="shopping-btn" onclick="generateShoppingList()">🛒 產生購物清單</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // JavaScript 用於控制頁面顯示邏輯、數據處理和互動
+
+        // 當前顯示的頁面
+        let currentPage = 'scan-page';
+        // 當前選中的食譜
+        let currentRecipe = null;
+        // 當前食譜的步驟
+        let currentRecipeSteps = [];
+        // 當前烹飪步驟索引
+        let currentStepIndex = 0;
+        // 語音導覽開關
+        let voiceGuideEnabled = false;
+
+        // 模擬數據庫 (實際會從後端獲取)
+        const mockRecipes = [
+            {
+                name: '回鍋肉',
+                ingredients: ['豬肉 200克', '蒜苗 100克', '豆瓣醬 2湯匙'],
+                difficulty: '中級',
+                time: '30分鐘',
+                health: '低油低鹽、家常菜',
+                intro: '將肥瘦相間的豬肉煮熟後切片，再與蒜苗、豆瓣醬等一同爆炒而成。',
+                image: 'https://via.placeholder.com/300x200?text=回鍋肉',
+                steps: [
+                    {
+                        number: 1,
+                        text: '將豬肉冷水下鍋，加入薑片、蔥段和少許料酒煮至八成熟，撈出放涼切薄片。',
+                        image: 'https://via.placeholder.com/400x300?text=煮肉',
+                        timer: null
+                    },
+                    {
+                        number: 2,
+                        text: '蒜苗洗淨切段，青椒切塊備用。',
+                        image: 'https://via.placeholder.com/400x300?text=切配料',
+                        timer: null
+                    },
+                    {
+                        number: 3,
+                        text: '鍋中不放油，放入肉片小火煸炒出油，至肉片邊緣捲曲微黃，盛出備用。',
+                        image: 'https://via.placeholder.com/400x300?text=煸炒肉片',
+                        timer: null
+                    },
+                    {
+                        number: 4,
+                        text: '利用鍋中餘油，放入豆瓣醬、甜麵醬炒出紅油，加入薑蒜末炒香。',
+                        image: 'https://via.placeholder.com/400x300?text=炒醬料',
+                        timer: null
+                    },
+                    {
+                        number: 5,
+                        text: '放入煸好的肉片、青椒、蒜苗翻炒均勻，加入少許生抽、白糖調味即可出鍋。',
+                        image: 'https://via.placeholder.com/400x300?text=翻炒出鍋',
+                        timer: null
+                    }
+                ]
+            },
+            {
+                name: '番茄炒蛋',
+                ingredients: ['番茄 2個', '雞蛋 3個', '蔥花 適量'],
+                difficulty: '初級',
+                time: '15分鐘',
+                health: '高纖易消化、素食',
+                intro: '經典家常菜，番茄的酸甜與雞蛋的滑嫩完美結合。',
+                image: 'https://via.placeholder.com/300x200?text=番茄炒蛋',
+                steps: [
+                    {
+                        number: 1,
+                        text: '番茄洗淨切塊，雞蛋打散加入少許鹽。',
+                        image: 'https://via.placeholder.com/400x300?text=準備番茄雞蛋',
+                        timer: null
+                    },
+                    {
+                        number: 2,
+                        text: '鍋中放油燒熱，倒入蛋液快速炒熟，盛出備用。',
+                        image: 'https://via.placeholder.com/400x300?text=炒蛋',
+                        timer: null
+                    },
+                    {
+                        number: 3,
+                        text: '鍋中再加少許油，放入番茄塊炒出汁，加入少許糖和鹽調味。',
+                        image: 'https://via.placeholder.com/400x300?text=炒番茄',
+                        timer: null
+                    },
+                    {
+                        number: 4,
+                        text: '倒入炒好的雞蛋，快速翻炒均勻，撒上蔥花即可。',
+                        image: 'https://via.placeholder.com/400x300?text=番茄雞蛋合炒',
+                        timer: null
+                    }
+                ]
+            },
+            // 可以添加更多食譜...
+        ];
+
+        // --- 頁面導航和顯示邏輯 ---
+        function showPage(pageId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            currentPage = pageId;
+
+            // 控制頂部導航欄的顯示
+            if (pageId === 'recipe-detail-page') {
+                document.getElementById('top-navbar').style.display = 'flex';
+            } else {
+                document.getElementById('top-navbar').style.display = 'none';
+            }
+        }
+
+        function goBack() {
+            if (currentPage === 'recipe-detail-page') {
+                showPage('recipe-list-page');
+            } else if (currentPage === 'recipe-list-page') {
+                showPage('scan-page');
+                document.getElementById('identified-ingredients').style.display = 'none';
+                document.getElementById('confirm-ingredients-btn').style.display = 'none';
+                // 清空已識別食材
+                document.getElementById('ingredients-display').textContent = '';
+            }
+            // 更多返回邏輯可以加在這裡
+        }
+
+        // --- 首頁/掃描介面功能 ---
+        document.getElementById('start-scan-btn').addEventListener('click', () => {
+            // 實際應用中，這裡會啟動相機並進行圖像識別
+            // 模擬識別結果
+            setTimeout(() => {
+                document.getElementById('identified-ingredients').style.display = 'block';
+                document.getElementById('ingredients-display').textContent = '雞肉、紅蘿蔔、洋蔥';
+                document.getElementById('confirm-ingredients-btn').style.display = 'block';
+                speakText('已識別到雞肉、紅蘿蔔、洋蔥，請確認。');
+            }, 2000); // 模擬2秒掃描時間
+        });
+
+        document.getElementById('confirm-ingredients-btn').addEventListener('click', () => {
+            const identified = document.getElementById('ingredients-display').textContent;
+            findRecipes(identified.split('、').map(s => s.trim()));
+        });
+
+        function addManualIngredient() {
+            const input = document.getElementById('manual-ingredient-input');
+            const ingredient = input.value.trim();
+            if (ingredient) {
+                let currentIngredients = document.getElementById('ingredients-display').textContent.split('、').map(s => s.trim()).filter(s => s !== '');
+                if (!currentIngredients.includes(ingredient)) {
+                    currentIngredients.push(ingredient);
+                }
+                document.getElementById('identified-ingredients').style.display = 'block';
+                document.getElementById('ingredients-display').textContent = currentIngredients.join('、');
+                input.value = '';
+                document.getElementById('confirm-ingredients-btn').style.display = 'block';
+                speakText(`已加入 ${ingredient}`);
+            }
+        }
+
+        function selectTag(ingredient) {
+            let currentIngredients = document.getElementById('ingredients-display').textContent.split('、').map(s => s.trim()).filter(s => s !== '');
+            if (!currentIngredients.includes(ingredient)) {
+                currentIngredients.push(ingredient);
+            }
+            document.getElementById('identified-ingredients').style.display = 'block';
+            document.getElementById('ingredients-display').textContent = currentIngredients.join('、');
+            document.getElementById('confirm-ingredients-btn').style.display = 'block';
+            speakText(`已選擇 ${ingredient}`);
+        }
+
+        document.getElementById('find-recipes-manual-btn').addEventListener('click', () => {
+            const identified = document.getElementById('ingredients-display').textContent;
+            if (identified) {
+                findRecipes(identified.split('、').map(s => s.trim()));
+            } else {
+                alert('請先輸入或選擇食材！');
+            }
+        });
+
+
+        // --- 食譜列表介面功能 ---
+        function findRecipes(ingredients) {
+            // 實際應用中，這裡會調用後端 API 根據食材查詢食譜
+            // 模擬過濾食譜
+            const filteredRecipes = mockRecipes.filter(recipe => {
+                return ingredients.some(ing => recipe.ingredients.some(ri => ri.includes(ing)));
+            });
+
+            const recipesContainer = document.getElementById('recipes-container');
+            recipesContainer.innerHTML = ''; // 清空之前的內容
+
+            if (filteredRecipes.length === 0) {
+                recipesContainer.innerHTML = '<p style="text-align: center; font-size: 1.5em; color: #666;">抱歉，沒有找到符合您食材的食譜。</p>';
+                speakText('抱歉，沒有找到符合您食材的食譜。');
+            } else {
+                filteredRecipes.forEach(recipe => {
+                    const card = document.createElement('div');
+                    card.className = 'recipe-card';
+                    card.onclick = () => showRecipeDetail(recipe);
+                    card.innerHTML = `
+                        <img src="${recipe.image}" alt="${recipe.name}">
+                        <div class="recipe-card-content">
+                            <h3>${recipe.name}</h3>
+                            <p>主要食材：${recipe.ingredients.join('、')}</p>
+                            <p>難度：${recipe.difficulty} | 時間：${recipe.time}</p>
+                            <div class="tags">
+                                ${recipe.health.split('、').map(tag => `<span>${tag.trim()}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                    recipesContainer.appendChild(card);
+                });
+                speakText('為您推薦以下食譜。');
+            }
+            showPage('recipe-list-page');
+        }
+
+        // --- 食譜詳情與烹飪步驟介面功能 ---
+        function showRecipeDetail(recipe) {
+            currentRecipe = recipe;
+            currentRecipeSteps = recipe.steps;
+            currentStepIndex = 0;
+
+            document.getElementById('recipe-title-display').textContent = recipe.name;
+            document.getElementById('nav-title').textContent = recipe.name; // 更新頂部導航標題
+            document.getElementById('recipe-ingredients-display').textContent = recipe.ingredients.join('、');
+            document.getElementById('recipe-difficulty-display').textContent = recipe.difficulty;
+            document.getElementById('recipe-time-display').textContent = recipe.time;
+            document.getElementById('recipe-health-display').textContent = recipe.health;
+            document.getElementById('recipe-intro-display').textContent = recipe.intro;
+
+            displayStep(currentStepIndex);
+            showPage('recipe-detail-page');
+            speakText(`您選擇了${recipe.name}。現在開始準備烹飪。`);
+        }
+
+        function displayStep(index) {
+            const stepsContainer = document.getElementById('recipe-steps-container');
+            stepsContainer.innerHTML = ''; // 清空所有步驟
+
+            if (index >= 0 && index < currentRecipeSteps.length) {
+                const step = currentRecipeSteps[index];
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'recipe-step';
+                stepDiv.innerHTML = `
+                    <div class="step-number">步驟 ${step.number}</div>
+                    <div class="step-image">
+                        <img src="${step.image}" alt="步驟${step.number}圖片">
+                    </div>
+                    <div class="step-text">${step.text}</div>
+                    ${step.timer ? `<div class="step-timer">計時器: ${step.timer}</div>` : '<div class="step-timer" style="display:none;"></div>'}
+                `;
+                stepsContainer.appendChild(stepDiv);
+
+                // 更新導航按鈕狀態
+                document.querySelector('.nav-back').disabled = (index === 0);
+                document.querySelector('.nav-next').disabled = (index === currentRecipeSteps.length - 1);
+
+                // 語音提示當前步驟
+                speakText(`步驟 ${step.number}：${step.text}`);
+            }
+        }
+
+        function nextStep() {
+            if (currentStepIndex < currentRecipeSteps.length - 1) {
+                currentStepIndex++;
+                displayStep(currentStepIndex);
+            } else {
+                alert('恭喜您！所有步驟已完成，可以享用美食了！');
+                speakText('恭喜您！所有步驟已完成，可以享用美食了！');
+                // 可以導航回首頁或食譜列表
+                // showPage('scan-page');
+            }
+        }
+
+        function prevStep() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                displayStep(currentStepIndex);
+            }
+        }
+
+        // --- 語音提示功能 ---
+        function speakText(text) {
+            if (voiceGuideEnabled && 'speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-HK'; // 設定粵語或中文
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function toggleVoiceGuide() {
+            voiceGuideEnabled = !voiceGuideEnabled;
+            const voiceButton = document.querySelector('.top-nav button:last-child');
+            if (voiceGuideEnabled) {
+                voiceButton.textContent = '🔊';
+                speakText('語音導覽已開啟。');
+            } else {
+                voiceButton.textContent = '🔇';
+                speakText('語音導覽已關閉。');
+            }
+        }
+
+        // --- 其他潛在功能 ---
+        function addToFavorites() {
+            if (currentRecipe) {
+                // 實際應用中，這裡會將食譜ID儲存到用戶的收藏列表 (可能在本地存儲或後端)
+                alert(`已將「${currentRecipe.name}」加入您的最愛！`);
+                speakText(`已將${currentRecipe.name}加入您的最愛。`);
+            }
+        }
+
+        function generateShoppingList() {
+            if (currentRecipe) {
+                // 實際應用中，會根據 currentRecipe.ingredients 生成購物清單
+                const ingredientsList = currentRecipe.ingredients.map(ing => `- ${ing}`).join('\n');
+                alert(`這是「${currentRecipe.name}」的購物清單：\n${ingredientsList}\n請列印或截圖帶去超市喔！`);
+                speakText(`已為您產生${currentRecipe.name}的購物清單。`);
+            }
+        }
+
+        // 初始化：顯示首頁
+        document.addEventListener('DOMContentLoaded', () => {
+            showPage('scan-page');
+            speakText('歡迎使用智慧食譜助手，點擊掃描食材開始烹飪之旅！');
+        });
+    </script>
+</body>
+</html>
