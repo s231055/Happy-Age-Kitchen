@@ -351,6 +351,36 @@
         .modal-re-scan-btn { background-color: #ffc107; color: #333;}
         .modal-re-scan-btn:hover { background-color: #e0a800;}
 
+        /* 加載指示器 */
+        #loading-indicator {
+            display: none;
+            position: fixed;
+            z-index: 1002;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            font-size: 2em;
+        }
+        .spinner {
+            border: 8px solid rgba(255,255,255,0.3);
+            border-top: 8px solid #fff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
     </style>
 </head>
 <body>
@@ -436,13 +466,18 @@
 
     <div id="recognition-modal">
         <div class="modal-content">
-            <h3>Gemini 識別結果</h3>
+            <h3>OpenRouter 識別結果</h3>
             <p class="recognized-items">您掃描到了：<span id="modal-recognized-ingredients"></span></p>
             <div class="modal-buttons">
                 <button class="modal-confirm-btn" onclick="confirmRecognition()">確認</button>
                 <button class="modal-re-scan-btn" onclick="hideRecognitionModal()">重新掃描/修改</button>
             </div>
         </div>
+    </div>
+
+    <div id="loading-indicator">
+        <div class="spinner"></div>
+        <p>AI 正在努力識別中，請稍候...</p>
     </div>
 
 
@@ -462,7 +497,16 @@
 
         let videoStream = null; // 用於儲存攝像頭串流
 
-        // 模擬數據庫 (實際會從後端獲取)
+        // OpenRouter API 配置
+        const OPENROUTER_API_KEY = 'YOUR_OPENROUTER_API_KEY'; // **請替換為您的實際 API 金鑰！生產環境請勿直接暴露！**
+        const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+        // 選擇一個支援多模態輸入的 Gemma 模型或其變體。
+        // 請務必查閱 OpenRouter 文檔獲取最新和最合適的模型ID。
+        // 例如：可能會有類似 'google/gemma-vision' 或 'google/gemma-large-vision' 的模型，
+        // 或者需要搭配另一個視覺模型。這裡先用一個通用概念性的名稱。
+        const OPENROUTER_MODEL = 'google/gemma-2-9b-it'; // 示例：這可能不是 OpenRouter 上準確的多模態 Gemma 模型 ID，請替換！
+
+        // 模擬數據庫 (實際會從後端獲取) - 保持與上一個版本相同的大量食譜數據
         const mockRecipes = [
             {
                 name: '滷水拼盤',
@@ -650,60 +694,513 @@
                 ingredients: ['苦瓜', '豬肉', '蒜', '醬油'],
                 difficulty: '中級', time: '20分鐘', health: '清熱解毒', intro: '苦瓜清脆，肉片鮮香，味道豐富。', image: 'https://via.placeholder.com/300x200?text=苦瓜炒肉',
                 steps: [
-                    { number: 1, text: '苦瓜去籽切薄片，用鹽抓勻後靜置10分鐘出水，再沖洗乾淨。豬肉切片。', image: 'https://via.placeholder.com/400x300?text=準備食材', timer: '10分鐘' },
-                    { number: 2, text: '鍋中放油，放入豬肉片炒至變色，加入蒜末爆香。', image: 'https://via.placeholder.com/400x300?text=炒肉', timer: null },
-                    { number: 3, text: '倒入苦瓜片大火翻炒，加入醬油、鹽調味，炒至苦瓜斷生即可。', image: 'https://via.placeholder.com/400x300?text=炒苦瓜', timer: null }
+                    { number: 1, text: '苦瓜去籽切薄片，用鹽抓勻後靜置10分鐘出水，再沖洗乾淨。豬肉切片。', image: 'https://via.placeholder.com/400x300?text=處理苦瓜肉', timer: '10分鐘' },
+                    { number: 2, text: '鍋中放油，炒香肉片，加入蒜末、醬油炒香。', image: 'https://via.placeholder.com/400x300?text=炒肉', timer: null },
+                    { number: 3, text: '倒入苦瓜片翻炒，與肉片混合均勻，加鹽調味，炒至苦瓜斷生即可。', image: 'https://via.placeholder.com/400x300?text=炒苦瓜肉', timer: null }
                 ]
             },
             {
-                name: '蒜蓉蒸絲瓜',
-                keyIngredients: ['絲瓜', '蒜'],
-                ingredients: ['絲瓜', '蒜', '醬油', '麻油', '蔥花'],
-                difficulty: '初級', time: '15分鐘', health: '清甜、易消化', intro: '絲瓜清甜軟糯，搭配蒜蓉香氣。', image: 'https://via.placeholder.com/300x200?text=蒜蓉蒸絲瓜',
+                name: '蔥油拌麵',
+                keyIngredients: ['麵條', '蔥', '醬油'],
+                ingredients: ['麵條', '蔥', '醬油', '糖', '食用油'],
+                difficulty: '初級', time: '15分鐘', health: '簡單主食', intro: '家常簡餐，蔥油的香氣與麵條的Q彈完美結合。', image: 'https://via.placeholder.com/300x200?text=蔥油拌麵',
                 steps: [
-                    { number: 1, text: '絲瓜去皮切滾刀塊，鋪在盤中。蒜切末。', image: 'https://via.placeholder.com/400x300?text=準備絲瓜', timer: null },
-                    { number: 2, text: '將蒜末、醬油、麻油混合成醬汁，淋在絲瓜上。', image: 'https://via.placeholder.com/400x300?text=淋醬汁', timer: null },
-                    { number: 3, text: '放入蒸鍋，大火蒸8-10分鐘至絲瓜變軟。', image: 'https://via.placeholder.com/400x300?text=蒸絲瓜', timer: '10分鐘' },
-                    { number: 4, text: '取出後撒上蔥花即可。', image: 'https://via.placeholder.com/400x300?text=完成', timer: null }
+                    { number: 1, text: '細蔥切成蔥花。麵條煮熟後撈出，用少量香油拌勻防止粘連。', image: 'https://via.placeholder.com/400x300?text=準備麵條蔥花', timer: '8分鐘' },
+                    { number: 2, text: '鍋中放入較多食用油，小火炸蔥花至金黃酥脆，撈出蔥渣。', image: 'https://via.placeholder.com/400x300?text=炸蔥油', timer: '5分鐘' },
+                    { number: 3, text: '在碗中放入醬油、少許糖，倒入熱蔥油拌勻，再加入麵條和炸好的蔥花，拌勻即可。', image: 'https://via.placeholder.com/400x300?text=拌麵', timer: null }
                 ]
             },
             {
-                name: '上湯娃娃菜',
-                keyIngredients: ['娃娃菜', '高湯', '蒜'],
-                ingredients: ['娃娃菜', '高湯', '蒜', '枸杞'],
-                difficulty: '初級', time: '20分鐘', health: '清淡滋補', intro: '清甜的娃娃菜，吸收高湯精華，溫暖養胃。', image: 'https://via.placeholder.com/300x200?text=上湯娃娃菜',
+                name: '香菇滑雞',
+                keyIngredients: ['雞腿肉', '香菇', '薑', '蔥'],
+                ingredients: ['雞腿肉', '香菇', '薑', '蔥', '蠔油', '生抽', '麻油', '澱粉'],
+                difficulty: '中級', time: '30分鐘', health: '鮮美可口', intro: '雞肉滑嫩，香菇鮮香，家常下飯菜。', image: 'https://via.placeholder.com/300x200?text=香菇滑雞',
                 steps: [
-                    { number: 1, text: '娃娃菜洗淨對半切開或切段。蒜切末。', image: 'https://via.placeholder.com/400x300?text=準備娃娃菜', timer: null },
-                    { number: 2, text: '鍋中放少許油，爆香蒜末。', image: 'https://via.placeholder.com/400x300?text=爆香蒜', timer: null },
-                    { number: 3, text: '加入高湯煮開，放入娃娃菜煮至軟爛，加鹽調味，撒上枸杞即可。', image: 'https://via.placeholder.com/400x300?text=煮娃娃菜', timer: '10分鐘' }
-                ]
-            },
-            {
-                name: '魚香茄子',
-                keyIngredients: ['茄子', '豬肉', '蒜', '薑', '豆瓣醬', '醋', '糖'],
-                ingredients: ['茄子', '豬肉', '蒜', '薑', '豆瓣醬', '醋', '糖', '蔥花', '醬油'],
-                difficulty: '中級', time: '30分鐘', health: '開胃下飯', intro: '茄子軟糯入味，魚香味濃郁，非常下飯。', image: 'https://via.placeholder.com/300x200?text=魚香茄子',
-                steps: [
-                    { number: 1, text: '茄子洗淨切條，用鹽水浸泡10分鐘後瀝乾。豬肉剁成肉末。', image: 'https://via.placeholder.com/400x300?text=準備食材', timer: '10分鐘' },
-                    { number: 2, text: '碗中調好魚香汁：醬油、醋、糖、澱粉、水混合均勻。', image: 'https://via.placeholder.com/400x300?text=調魚香汁', timer: null },
-                    { number: 3, text: '鍋中放油燒熱，放入茄子炸軟或煸炒軟身，盛出。', image: 'https://via.placeholder.com/400x300?text=處理茄子', timer: null },
-                    { number: 4, text: '鍋中留底油，炒香肉末，加入蒜末、薑末、豆瓣醬炒出紅油。', image: 'https://via.placeholder.com/400x300?text=炒肉末醬料', timer: null },
-                    { number: 5, text: '倒入茄子，淋入魚香汁，快速翻炒均勻，收汁後撒上蔥花即可。', image: 'https://via.placeholder.com/400x300?text=燴茄子', timer: null }
-                ]
-            },
-            {
-                name: '乾煸四季豆',
-                keyIngredients: ['四季豆', '豬肉', '蒜', '辣椒'],
-                ingredients: ['四季豆', '豬肉', '蒜', '辣椒', '花椒', '醬油'],
-                difficulty: '中級', time: '25分鐘', health: '香辣開胃', intro: '四季豆乾香，肉末香辣，口感豐富。', image: 'https://via.placeholder.com/300x200?text=乾煸四季豆',
-                steps: [
-                    { number: 1, text: '四季豆洗淨掐去兩頭，掰成小段。豬肉剁成肉末。', image: 'https://via.placeholder.com/400x300?text=準備四季豆', timer: null },
-                    { number: 2, text: '鍋中多放些油，放入四季豆中小火煸炒至表皮起皺，盛出。', image: 'https://via.placeholder.com/400x300?text=煸四季豆', timer: null },
-                    { number: 3, text: '鍋中留底油，放入肉末炒散，加入蒜末、乾辣椒、花椒炒香。', image: 'https://via.placeholder.com/400x300?text=炒肉末', timer: null },
-                    { number: 4, text: '倒入煸好的四季豆，加醬油、鹽調味，快速翻炒均勻即可。', image: 'https://via.placeholder.com/400x300?text=合炒', timer: null }
+                    { number: 1, text: '雞腿肉切塊，用生抽、麻油、澱粉醃製15分鐘。香菇泡軟切片，薑切片，蔥切段。', image: 'https://via.placeholder.com/400x300?text=準備滑雞食材', timer: '15分鐘' },
+                    { number: 2, text: '鍋中放油燒熱，爆香薑片和蔥段，放入雞肉炒至變色。', image: 'https://via.placeholder.com/400x300?text=炒雞肉', timer: null },
+                    { number: 3, text: '加入香菇片翻炒，倒入蠔油和適量水，煮至雞肉熟透，勾芡即可。', image: 'https://via.placeholder.com/400x300?text=煮滑雞', timer: null }
                 ]
             },
             {
                 name: '青椒炒肉絲',
-                keyIngredients: ['青椒', '豬肉'],
-                ingredients: ['青
+                keyIngredients: ['豬肉', '青椒'],
+                ingredients: ['豬肉', '青椒', '醬油', '澱粉', '蒜'],
+                difficulty: '中級', time: '20分鐘', health: '家常', intro: '簡單快速的家常小炒，青椒清脆，肉絲入味。', image: 'https://via.placeholder.com/300x200?text=青椒炒肉絲',
+                steps: [
+                    { number: 1, text: '豬肉切絲，用醬油、澱粉醃製。青椒切絲，蒜切末。', image: 'https://via.placeholder.com/400x300?text=準備肉絲青椒', timer: null },
+                    { number: 2, text: '鍋中放油燒熱，放入肉絲炒至變色盛出。', image: 'https://via.placeholder.com/400x300?text=炒肉絲', timer: null },
+                    { number: 3, text: '另起鍋，爆香蒜末，放入青椒絲翻炒至斷生，倒入肉絲，加鹽調味，快速翻炒均勻即可。', image: 'https://via.placeholder.com/400x300?text=炒青椒肉絲', timer: null }
+                ]
+            },
+             {
+                name: '清蒸鱸魚',
+                keyIngredients: ['鱸魚', '薑', '蔥'],
+                ingredients: ['鱸魚', '薑', '蔥', '蒸魚豉油', '食用油'],
+                difficulty: '中級', time: '25分鐘', health: '高蛋白、低脂', intro: '經典粵菜做法，最大程度保留魚肉的鮮甜和營養。', image: 'https://via.placeholder.com/300x200?text=清蒸鱸魚',
+                steps: [
+                    { number: 1, text: '鱸魚處理乾淨，兩面斜刀劃幾刀，用鹽和料酒醃製10分鐘。薑切片、蔥切段和薑絲。', image: 'https://via.placeholder.com/400x300?text=準備鱸魚', timer: '10分鐘' },
+                    { number: 2, text: '盤底鋪上薑片和蔥段，放上鱸魚，魚身也放些薑片和蔥段。水開後放入蒸鍋，大火蒸8-10分鐘。', image: 'https://via.placeholder.com/400x300?text=蒸魚', timer: '10分鐘' },
+                    { number: 3, text: '取出蒸好的魚，倒掉盤中水分，淋上蒸魚豉油，鋪上新鮮薑絲和蔥絲。', image: 'https://via.placeholder.com/400x300?text=淋蒸魚豉油', timer: null },
+                    { number: 4, text: '另起鍋燒熱適量食用油，淋在薑絲和蔥絲上，激發香味即可。', image: 'https://via.placeholder.com/400x300?text=淋熱油', timer: null }
+                ]
+            }
+            // ... 可以繼續添加更多食譜數據
+        ];
+
+        // 常用食材的列表，用於生成標籤
+        const commonIngredients = Array.from(new Set(mockRecipes.flatMap(recipe => recipe.ingredients)));
+        let identifiedIngredients = new Set(); // 用於儲存已識別的食材，使用 Set 避免重複
+
+        // 頁面元素獲取
+        const scanPage = document.getElementById('scan-page');
+        const recipeListPage = document.getElementById('recipe-list-page');
+        const recipeDetailPage = document.getElementById('recipe-detail-page');
+        const topNavbar = document.getElementById('top-navbar');
+        const navTitle = document.getElementById('nav-title');
+
+        const startCameraButton = document.getElementById('start-camera-btn');
+        const takePhotoButton = document.getElementById('take-photo-btn');
+        const cameraStream = document.getElementById('camera-stream');
+        const scanOverlayText = document.getElementById('scan-overlay-text');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const identifiedIngredientsDiv = document.getElementById('identified-ingredients');
+        const ingredientsDisplay = document.getElementById('ingredients-display');
+        const clearIdentifiedButton = document.getElementById('clear-identified-btn');
+        const confirmIngredientsButton = document.getElementById('confirm-ingredients-btn');
+
+        const manualIngredientInput = document.getElementById('manual-ingredient-input');
+        const commonIngredientsTagsContainer = document.getElementById('common-ingredients-tags');
+        const findRecipesManualButton = document.getElementById('find-recipes-manual-btn');
+
+        const recipesContainer = document.getElementById('recipes-container');
+
+        const recipeTitleDisplay = document.getElementById('recipe-title-display');
+        const recipeIngredientsDisplay = document.getElementById('recipe-ingredients-display');
+        const recipeDifficultyDisplay = document.getElementById('recipe-difficulty-display');
+        const recipeTimeDisplay = document.getElementById('recipe-time-display');
+        const recipeHealthDisplay = document.getElementById('recipe-health-display');
+        const recipeIntroDisplay = document.getElementById('recipe-intro-display');
+        const recipeStepsContainer = document.getElementById('recipe-steps-container');
+
+        const recognitionModal = document.getElementById('recognition-modal');
+        const modalRecognizedIngredients = document.getElementById('modal-recognized-ingredients');
+        const loadingIndicator = document.getElementById('loading-indicator');
+
+        // 初始化：根據 commonIngredients 生成標籤
+        function initializeCommonIngredientsTags() {
+            commonIngredientsTagsContainer.innerHTML = ''; // 清空現有標籤
+            commonIngredients.forEach(ingredient => {
+                const tag = document.createElement('span');
+                tag.classList.add('ingredient-tag');
+                tag.textContent = ingredient;
+                tag.onclick = () => addIngredient(ingredient);
+                commonIngredientsTagsContainer.appendChild(tag);
+            });
+        }
+
+        // 載入時初始化常用食材標籤
+        document.addEventListener('DOMContentLoaded', initializeCommonIngredientsTags);
+
+
+        // 頁面導航功能
+        function showPage(pageId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            currentPage = pageId;
+
+            // 根據頁面顯示/隱藏導航欄
+            if (pageId === 'scan-page') {
+                topNavbar.style.display = 'none';
+            } else {
+                topNavbar.style.display = 'flex';
+                // 更新導航欄標題
+                if (pageId === 'recipe-list-page') {
+                    navTitle.textContent = '推薦食譜';
+                } else if (pageId === 'recipe-detail-page' && currentRecipe) {
+                    navTitle.textContent = currentRecipe.name;
+                }
+            }
+        }
+
+        // 返回上一頁
+        function goBack() {
+            if (currentPage === 'recipe-list-page') {
+                showPage('scan-page');
+                // 停止攝像頭串流 (如果正在運行)
+                stopCamera();
+            } else if (currentPage === 'recipe-detail-page') {
+                showPage('recipe-list-page');
+            }
+        }
+
+        // 攝像頭控制
+        startCameraButton.addEventListener('click', startCamera);
+        takePhotoButton.addEventListener('click', takePhoto);
+        clearIdentifiedButton.addEventListener('click', clearIdentifiedIngredients);
+        confirmIngredientsButton.addEventListener('click', findRecipesFromIdentified);
+        findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
+
+        async function startCamera() {
+            try {
+                // 檢查是否有攝像頭權限
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); // 優先使用後置攝像頭
+                cameraStream.srcObject = stream;
+                videoStream = stream; // 保存串流以便停止
+                cameraStream.style.display = 'block';
+                scanOverlayText.style.display = 'none';
+                takePhotoButton.style.display = 'block';
+                startCameraButton.style.display = 'none';
+            } catch (err) {
+                console.error("無法開啟攝像頭：", err);
+                alert("無法開啟攝像頭，請檢查您的設備或瀏覽器權限設置。");
+                scanOverlayText.innerHTML = '<span class="icon">❌</span><p>無法開啟攝像頭。</p><p>請確認已授予權限。</p>';
+            }
+        }
+
+        function stopCamera() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+                cameraStream.srcObject = null;
+                cameraStream.style.display = 'none';
+                scanOverlayText.style.display = 'block';
+                takePhotoButton.style.display = 'none';
+                startCameraButton.style.display = 'block';
+            }
+        }
+
+        async function takePhoto() {
+            if (!videoStream) {
+                alert("請先開啟攝像頭！");
+                return;
+            }
+
+            // 確保 canvas 尺寸與 video 匹配
+            canvas.width = cameraStream.videoWidth;
+            canvas.height = cameraStream.videoHeight;
+            ctx.drawImage(cameraStream, 0, 0, canvas.width, canvas.height);
+
+            // 將 canvas 內容轉換為 Base64 數據 URL
+            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8); // 0.8 是圖像品質
+
+            showLoading(); // 顯示加載指示器
+            await analyzeImageWithOpenRouter(imageDataUrl); // 調用 OpenRouter API 進行分析
+        }
+
+        async function analyzeImageWithOpenRouter(imageDataUrl) {
+            try {
+                // 提取 Base64 數據，移除前綴 "data:image/jpeg;base64,"
+                const base64Image = imageDataUrl.split(',')[1];
+
+                const response = await fetch(OPENROUTER_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: OPENROUTER_MODEL,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: [
+                                    {
+                                        type: 'text',
+                                        text: '請列出這張圖片中出現的食物或食材，並以逗號分隔，例如：蘋果, 香蕉, 牛奶。如果沒有識別到任何食物，請回答「無」。'
+                                    },
+                                    {
+                                        type: 'image_url',
+                                        image_url: {
+                                            url: `data:image/jpeg;base64,${base64Image}`
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('OpenRouter API 錯誤:', errorData);
+                    throw new Error(`OpenRouter API 呼叫失敗: ${response.status} ${response.statusText} - ${errorData.message || ''}`);
+                }
+
+                const data = await response.json();
+                console.log('OpenRouter API 回應:', data);
+
+                let recognizedText = '無'; // 預設值
+                if (data.choices && data.choices.length > 0 && data.choices[0].message && data.choices[0].message.content) {
+                    recognizedText = data.choices[0].message.content.trim();
+                }
+
+                // 彈出模態框顯示識別結果
+                showRecognitionModal(recognizedText);
+
+            } catch (error) {
+                console.error('識別圖片時發生錯誤:', error);
+                alert('識別食材時發生錯誤，請稍後再試。\n' + error.message);
+                hideLoading(); // 隱藏加載指示器
+            } finally {
+                // 不在這裡隱藏 loading，在 confirmRecognition 或 hideRecognitionModal 裡隱藏
+            }
+        }
+
+        function showLoading() {
+            loadingIndicator.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            loadingIndicator.style.display = 'none';
+        }
+
+        function showRecognitionModal(recognizedItems) {
+            modalRecognizedIngredients.textContent = recognizedItems;
+            recognitionModal.style.display = 'flex'; // 顯示模態框
+        }
+
+        function hideRecognitionModal() {
+            recognitionModal.style.display = 'none'; // 隱藏模態框
+            hideLoading(); // 在關閉模態框時隱藏加載
+        }
+
+        function confirmRecognition() {
+            const recognizedItemsText = modalRecognizedIngredients.textContent;
+            hideRecognitionModal(); // 確認後隱藏模態框
+
+            if (recognizedItemsText && recognizedItemsText !== '無') {
+                recognizedItemsText.split(',').forEach(item => {
+                    const trimmedItem = item.trim();
+                    if (trimmedItem) {
+                        addIngredient(trimmedItem);
+                    }
+                });
+            } else {
+                 alert('沒有識別到食材，請嘗試重新掃描或手動輸入。');
+            }
+        }
+
+        // 添加食材到列表
+        function addIngredient(ingredientName) {
+            const normalizedIngredient = ingredientName.toLowerCase(); // 統一小寫
+
+            if (!identifiedIngredients.has(normalizedIngredient)) {
+                identifiedIngredients.add(normalizedIngredient);
+                updateIdentifiedIngredientsDisplay();
+                // 顯示確認按鈕和清空按鈕
+                identifiedIngredientsDiv.style.display = 'block';
+                confirmIngredientsButton.style.display = 'block';
+            }
+            manualIngredientInput.value = ''; // 清空手動輸入框
+        }
+
+        // 更新顯示已識別食材
+        function updateIdentifiedIngredientsDisplay() {
+            if (identifiedIngredients.size === 0) {
+                ingredientsDisplay.textContent = '無';
+                identifiedIngredientsDiv.style.display = 'none';
+                confirmIngredientsButton.style.display = 'none';
+            } else {
+                ingredientsDisplay.textContent = Array.from(identifiedIngredients).map(item => {
+                    // 將首字母大寫以提高可讀性
+                    return item.charAt(0).toUpperCase() + item.slice(1);
+                }).join('、');
+                identifiedIngredientsDiv.style.display = 'block';
+                confirmIngredientsButton.style.display = 'block';
+            }
+        }
+
+        // 清空已識別食材
+        function clearIdentifiedIngredients() {
+            identifiedIngredients.clear();
+            updateIdentifiedIngredientsDisplay();
+        }
+
+        // 手動添加食材
+        function addManualIngredient() {
+            const input = manualIngredientInput.value.trim();
+            if (input) {
+                input.split(/[,、\s]+/).forEach(item => { // 支持逗號、頓號或空格分隔
+                    if (item) addIngredient(item);
+                });
+            } else {
+                alert('請輸入食材名稱！');
+            }
+        }
+
+        // 根據已識別的食材查找食譜
+        function findRecipesFromIdentified() {
+            if (identifiedIngredients.size === 0) {
+                alert('請先掃描或手動輸入食材！');
+                return;
+            }
+            const ingredientsArray = Array.from(identifiedIngredients);
+            filterAndDisplayRecipes(ingredientsArray);
+        }
+
+        // 根據手動輸入的食材查找食譜
+        function findRecipesFromManualInput() {
+            const input = manualIngredientInput.value.trim();
+            const selectedTags = Array.from(commonIngredientsTagsContainer.children)
+                                    .filter(tag => tag.classList.contains('selected')) // 如果有選中狀態，這裡可以擴展
+                                    .map(tag => tag.textContent);
+
+            let ingredientsToSearch = [];
+            if (input) {
+                ingredientsToSearch = ingredientsToSearch.concat(input.split(/[,、\s]+/).filter(item => item !== ''));
+            }
+            ingredientsToSearch = ingredientsToSearch.concat(selectedTags);
+
+            if (ingredientsToSearch.length === 0) {
+                alert('請輸入或選擇食材！');
+                return;
+            }
+
+            filterAndDisplayRecipes(ingredientsToSearch);
+        }
+
+
+        // 過濾並顯示食譜
+        function filterAndDisplayRecipes(inputIngredients) {
+            const normalizedInput = inputIngredients.map(item => item.toLowerCase());
+            const foundRecipes = mockRecipes.filter(recipe => {
+                // 檢查食譜的關鍵食材是否都在輸入食材中
+                return recipe.keyIngredients.every(keyIng => normalizedInput.includes(keyIng.toLowerCase()));
+            });
+
+            recipesContainer.innerHTML = ''; // 清空現有食譜
+
+            if (foundRecipes.length > 0) {
+                foundRecipes.forEach(recipe => {
+                    const card = document.createElement('div');
+                    card.classList.add('recipe-card');
+                    card.innerHTML = `
+                        <img src="${recipe.image}" alt="${recipe.name}">
+                        <div class="recipe-card-content">
+                            <h3>${recipe.name}</h3>
+                            <p><strong>難度:</strong> ${recipe.difficulty}</p>
+                            <p><strong>時間:</strong> ${recipe.time}</p>
+                            <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
+                            <div class="tags">
+                                ${recipe.keyIngredients.map(ing => `<span>${ing}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                    card.onclick = () => showRecipeDetail(recipe);
+                    recipesContainer.appendChild(card);
+                });
+                showPage('recipe-list-page');
+                stopCamera(); // 轉到食譜列表頁時停止攝像頭
+            } else {
+                alert('很抱歉，沒有找到符合您食材的食譜。請嘗試調整食材列表。');
+            }
+        }
+
+        // 顯示食譜詳情
+        function showRecipeDetail(recipe) {
+            currentRecipe = recipe;
+            currentRecipeSteps = recipe.steps;
+            currentStepIndex = 0; // 重置步驟索引
+            navTitle.textContent = recipe.name; // 更新頂部導航欄標題
+
+            recipeTitleDisplay.textContent = recipe.name;
+            recipeIngredientsDisplay.textContent = recipe.ingredients.join('、');
+            recipeDifficultyDisplay.textContent = recipe.difficulty;
+            recipeTimeDisplay.textContent = recipe.time;
+            recipeHealthDisplay.textContent = recipe.health;
+            recipeIntroDisplay.textContent = recipe.intro;
+
+            displayCurrentStep(); // 顯示第一個步驟
+            showPage('recipe-detail-page');
+        }
+
+        // 顯示當前步驟
+        function displayCurrentStep() {
+            recipeStepsContainer.innerHTML = '';
+            if (currentRecipeSteps.length === 0) {
+                recipeStepsContainer.innerHTML = '<p style="text-align: center; font-size: 1.5em; color: #dc3545;">沒有烹飪步驟信息。</p>';
+                return;
+            }
+
+            const step = currentRecipeSteps[currentStepIndex];
+            const stepDiv = document.createElement('div');
+            stepDiv.classList.add('recipe-step');
+            stepDiv.innerHTML = `
+                <div class="step-number">步驟 ${step.number} / ${currentRecipeSteps.length}</div>
+                ${step.image ? `<div class="step-image"><img src="${step.image}" alt="步驟 ${step.number} 圖片"></div>` : ''}
+                <div class="step-text">${step.text}</div>
+                ${step.timer ? `<div class="step-timer">計時器：${step.timer}</div>` : ''}
+            `;
+            recipeStepsContainer.appendChild(stepDiv);
+
+            // 更新導航按鈕狀態
+            document.querySelector('.nav-back').disabled = (currentStepIndex === 0);
+            document.querySelector('.nav-next').disabled = (currentStepIndex === currentRecipeSteps.length - 1);
+
+            // 如果語音導覽啟用，則朗讀當前步驟
+            if (voiceGuideEnabled) {
+                speakText(`步驟 ${step.number}：${step.text}`);
+                if (step.timer) {
+                    speakText(`計時器：${step.timer}`);
+                }
+            }
+        }
+
+        // 上一步
+        function prevStep() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                displayCurrentStep();
+            }
+        }
+
+        // 下一步
+        function nextStep() {
+            if (currentStepIndex < currentRecipeSteps.length - 1) {
+                currentStepIndex++;
+                displayCurrentStep();
+            }
+        }
+
+        // 語音導覽開關
+        function toggleVoiceGuide() {
+            voiceGuideEnabled = !voiceGuideEnabled;
+            alert(`語音導覽已${voiceGuideEnabled ? '開啟' : '關閉'}`);
+            // 可以改變按鈕圖示或顏色來表示狀態
+        }
+
+        // 文本轉語音功能
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-TW'; // 設定語音語言為繁體中文
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.warn('您的瀏覽器不支持 Web Speech API。');
+            }
+        }
+
+        // 收藏功能 (佔位符)
+        function addToFavorites() {
+            if (currentRecipe) {
+                alert(`已將「${currentRecipe.name}」加入您的最愛！(此為模擬功能)`);
+                // 實際應用中會將食譜數據保存到本地儲存或後端
+            }
+        }
+
+        // 生成購物清單功能 (佔位符)
+        function generateShoppingList() {
+            if (currentRecipe) {
+                const ingredients = currentRecipe.ingredients.join('、');
+                alert(`為「${currentRecipe.name}」生成購物清單：\n${ingredients}\n(此為模擬功能)`);
+                // 實際應用中會將食材整理成更友好的購物清單格式
+            }
+        }
+
+    </script>
+</body>
+</html>
