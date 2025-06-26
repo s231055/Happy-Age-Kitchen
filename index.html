@@ -704,6 +704,7 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
                 if (!response.ok) {
                     const errorData = await response.json();
                     console.error('OpenRouter API 錯誤:', errorData);
+                    alert('OpenRouter API 錯誤: ' + JSON.stringify(errorData)); // 新增這行
                     throw new Error(`OpenRouter API 呼叫失敗: ${response.status} ${response.statusText} - ${errorData.message || ''}`);
                 }
 
@@ -721,9 +722,7 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
             } catch (error) {
                 console.error('識別圖片時發生錯誤:', error);
                 alert('識別食材時發生錯誤，請稍後再試。\n' + error.message);
-                hideLoading(); // 隱藏加載指示器
-            } finally {
-                // 不在這裡隱藏 loading，在 confirmRecognition 或 hideRecognitionModal 裡隱藏
+                hideLoading();
             }
         }
 
