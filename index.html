@@ -657,7 +657,7 @@
                                 content: [
                                     {
                                         type: 'text',
-                                        text: 'Please list the foods or ingredients that appear in this picture, separated by commas, e.g. apple, banana, milk. If no food is identified, please answer None. '
+                                        text: '請列出圖片中出現的食物或成分，並用「、」分隔，例如蘋果、香蕉、牛奶。如果沒有找到任何食物，請回答「無」。'
                                     },
                                     {
                                         type: 'image_url',
@@ -720,7 +720,7 @@
             hideRecognitionModal(); // 確認後隱藏模態框
 
             if (recognizedItemsText && recognizedItemsText !== '無') {
-                recognizedItemsText.split(',').forEach(item => {
+                recognizedItemsText.split('、').forEach(item => {
                     const trimmedItem = item.trim();
                     if (trimmedItem) {
                         addIngredient(trimmedItem);
