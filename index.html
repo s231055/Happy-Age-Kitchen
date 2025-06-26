@@ -504,7 +504,7 @@
         // 請務必查閱 OpenRouter 文檔獲取最新和最合適的模型ID。
         // 例如：可能會有類似 'google/gemma-vision' 或 'google/gemma-large-vision' 的模型，
         // 或者需要搭配另一個視覺模型。這裡先用一個通用概念性的名稱。
-        const OPENROUTER_MODEL = 'google/gemini-2.0-flash-exp:free'; // 示例：這可能不是 OpenRouter 上準確的多模態 Gemma 模型 ID，請替換！
+        const OPENROUTER_MODEL = 'google/gemini-pro-vision';
 
 
         let mockRecipes = []; // 先宣告為空陣列
@@ -736,8 +736,9 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
         }
 
         function showRecognitionModal(recognizedItems) {
-            modalRecognizedIngredients.textContent = recognizedItems;
-            recognitionModal.style.display = 'flex'; // 顯示模態框
+            // modalRecognizedIngredients.textContent = recognizedItems;
+            modalRecognizedIngredients.textContent = typeof recognizedItems === 'string' ? recognizedItems : JSON.stringify(recognizedItems);
+            recognitionModal.style.display = 'flex';
         }
 
         function hideRecognitionModal() {
@@ -747,18 +748,51 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
 
         function confirmRecognition() {
             const recognizedItemsText = modalRecognizedIngredients.textContent;
-            hideRecognitionModal(); // 確認後隱藏模態框
+            hideRecognitionModal(); // 隱藏模態框
 
             if (recognizedItemsText && recognizedItemsText !== '無') {
+                // 1. 加入食材
+                const ingredients = [];
                 recognizedItemsText.split('、').forEach(item => {
                     const trimmedItem = item.trim();
                     if (trimmedItem) {
                         addIngredient(trimmedItem);
+                        ingredients.push(trimmedItem);
                     }
                 });
+
+                // 2. 顯示「識別完成」提示
+                showTemporaryMessage('識別完成，正在為您尋找食譜...');
+
+                // 3. 直接搜尋並顯示食譜
+                setTimeout(() => {
+                    filterAndDisplayRecipes(ingredients);
+                    hideLoading();
+                }, 1200); // 1.2秒後跳轉，讓使用者看到提示
             } else {
-                 alert('沒有識別到食材，請嘗試重新掃描或手動輸入。');
+                alert('沒有識別到食材，請嘗試重新掃描或手動輸入。');
+                hideLoading();
             }
+        }
+
+        // 顯示短暫訊息
+        function showTemporaryMessage(msg) {
+            let msgDiv = document.createElement('div');
+            msgDiv.textContent = msg;
+            msgDiv.style.position = 'fixed';
+            msgDiv.style.top = '30%';
+            msgDiv.style.left = '50%';
+            msgDiv.style.transform = 'translate(-50%, -50%)';
+            msgDiv.style.background = 'rgba(0,0,0,0.8)';
+            msgDiv.style.color = '#fff';
+            msgDiv.style.padding = '30px 50px';
+            msgDiv.style.borderRadius = '15px';
+            msgDiv.style.fontSize = '2em';
+            msgDiv.style.zIndex = 2000;
+            document.body.appendChild(msgDiv);
+            setTimeout(() => {
+                msgDiv.remove();
+            }, 1000);
         }
 
         // 添加食材到列表
@@ -979,12 +1013,26 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
         }
 
         function initializeCommonIngredientsTags() {
+            // 取得所有食譜的食材，統計出現次數，取前幾名作為常用食材
+            const ingredientCount = {};
+            mockRecipes.forEach(recipe => {
+                recipe.ingredients.forEach(ing => {
+                    ingredientCount[ing] = (ingredientCount[ing] || 0) + 1;
+                });
+            });
+            // 取出現次數最多的前12個食材
+            const sorted = Object.entries(ingredientCount).sort((a, b) => b[1] - a[1]);
+            const topIngredients = sorted.slice(0, 12).map(([ing]) => ing);
+
+            // 清空舊標籤
             commonIngredientsTagsContainer.innerHTML = '';
-            (window.commonIngredients || []).forEach(ingredient => {
+            topIngredients.forEach(ing => {
                 const tag = document.createElement('span');
-                tag.classList.add('ingredient-tag');
-                tag.textContent = ingredient;
-                tag.onclick = () => addIngredient(ingredient);
+                tag.className = 'ingredient-tag';
+                tag.textContent = ing;
+                tag.onclick = function () {
+                    tag.classList.toggle('selected');
+                };
                 commonIngredientsTagsContainer.appendChild(tag);
             });
         }
