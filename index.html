@@ -462,6 +462,13 @@
                 <button class="shopping-btn" onclick="generateShoppingList()">🛒 產生購物清單</button>
             </div>
         </section>
+
+        <!-- 在 main.container 下方新增收藏頁 section -->
+        <section id="favorites-page" class="section">
+            <h2>我的收藏</h2>
+            <div class="recipe-list" id="favorites-container"></div>
+            <button onclick="showPage('scan-page')" style="margin-top:30px;">返回主頁</button>
+        </section>
     </main>
 
     <div id="recognition-modal">
@@ -1024,19 +1031,54 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
         // 收藏功能 (佔位符)
         function addToFavorites() {
             if (currentRecipe) {
-                alert(`已將「${currentRecipe.name}」加入您的最愛！(此為模擬功能)`);
-                // 實際應用中會將食譜數據保存到本地儲存或後端
+                let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+                // 避免重複收藏
+                if (!favorites.some(r => r.name === currentRecipe.name)) {
+                    favorites.push(currentRecipe);
+                    localStorage.setItem('favorites', JSON.stringify(favorites));
+                    alert(`已將「${currentRecipe.name}」加入您的最愛！`);
+                } else {
+                    alert(`「${currentRecipe.name}」已在您的最愛中！`);
+                }
             }
         }
 
-        // 生成購物清單功能 (佔位符)
-        function generateShoppingList() {
-            if (currentRecipe) {
-                const ingredients = currentRecipe.ingredients.join('、');
-                alert(`為「${currentRecipe.name}」生成購物清單：\n${ingredients}\n(此為模擬功能)`);
-                // 實際應用中會將食材整理成更友好的購物清單格式
+        // 顯示收藏頁
+        function showFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            const container = document.getElementById('favorites-container');
+            container.innerHTML = '';
+            if (favorites.length === 0) {
+                container.innerHTML = '<p style="text-align:center;font-size:1.5em;">暫無收藏的食譜。</p>';
+            } else {
+                favorites.forEach(recipe => {
+                    const card = document.createElement('div');
+                    card.classList.add('recipe-card');
+                    card.innerHTML = `
+                        <img src="${recipe.image}" alt="${recipe.name}">
+                        <div class="recipe-card-content">
+                            <h3>${recipe.name}</h3>
+                            <p><strong>難度:</strong> ${recipe.difficulty}</p>
+                            <p><strong>時間:</strong> ${recipe.time}</p>
+                            <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
+                            <div class="tags">
+                                ${recipe.keyIngredients.map(ing => `<span>${ing}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                    card.onclick = () => showRecipeDetail(recipe);
+                    container.appendChild(card);
+                });
             }
+            showPage('favorites-page');
         }
+
+        // 在頂部導航欄加一個「我的收藏」按鈕
+        const topNavbar = document.getElementById('top-navbar');
+        const favoritesBtn = document.createElement('button');
+        favoritesBtn.textContent = '❤️ 我的收藏';
+        favoritesBtn.onclick = showFavorites;
+        topNavbar.appendChild(favoritesBtn);
 
         function initializeCommonIngredientsTags() {
             // 取得所有食譜的食材，統計出現次數，取前幾名作為常用食材
