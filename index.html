@@ -569,9 +569,36 @@ mockRecipes = await response.json();
         }
 
         // DOM 元素快取
-const commonIngredientsTagsContainer = document.getElementById('common-ingredients-tags');
+const startCameraButton = document.getElementById('start-camera-btn');
+const takePhotoButton = document.getElementById('take-photo-btn');
+const clearIdentifiedButton = document.getElementById('clear-identified-btn');
+const confirmIngredientsButton = document.getElementById('confirm-ingredients-btn');
+const findRecipesManualButton = document.getElementById('find-recipes-manual-btn');
+const manualIngredientInput = document.getElementById('manual-ingredient-input');
+const cameraStream = document.getElementById('camera-stream');
+const scanOverlayText = document.getElementById('scan-overlay-text');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const identifiedIngredientsDiv = document.getElementById('identified-ingredients');
+const ingredientsDisplay = document.getElementById('ingredients-display');
+const recipesContainer = document.getElementById('recipes-container');
+const recipeTitleDisplay = document.getElementById('recipe-title-display');
+const recipeIngredientsDisplay = document.getElementById('recipe-ingredients-display');
+const recipeDifficultyDisplay = document.getElementById('recipe-difficulty-display');
+const recipeTimeDisplay = document.getElementById('recipe-time-display');
+const recipeHealthDisplay = document.getElementById('recipe-health-display');
+const recipeIntroDisplay = document.getElementById('recipe-intro-display');
+const recipeStepsContainer = document.getElementById('recipe-steps-container');
+const topNavbar = document.getElementById('top-navbar');
+const navTitle = document.getElementById('nav-title');
+const loadingIndicator = document.getElementById('loading-indicator');
+const recognitionModal = document.getElementById('recognition-modal');
+const modalRecognizedIngredients = document.getElementById('modal-recognized-ingredients');
 
-// 攝像頭控制
+// 已識別的食材集合
+const identifiedIngredients = new Set();
+
+        // 攝像頭控制
 startCameraButton.addEventListener('click', startCamera);
 takePhotoButton.addEventListener('click', takePhoto);
 clearIdentifiedButton.addEventListener('click', clearIdentifiedIngredients);
