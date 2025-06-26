@@ -1,1041 +1,1200 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧食譜助手</title>
-    <style>
-        /* CSS 樣式保持不變，與之前提供的一致 */
-        body {
-            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0; /* 淺灰色背景 */
-            color: #333; /* 深灰色文字 */
-            line-height: 1.6;
-        }
-        h1, h2, h3 {
-            color: #0056b3; /* 標題藍色 */
-            text-align: center;
-            font-size: 2.5em; /* 大字體 */
-            margin-bottom: 20px;
-        }
-        button {
-            display: block;
-            width: 80%;
-            max-width: 400px;
-            margin: 20px auto;
-            padding: 20px 30px;
-            font-size: 1.8em; /* 大按鈕文字 */
-            background-color: #28a745; /* 綠色按鈕 */
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        .container {
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-        }
-        .section {
-            display: none; /* 預設隱藏，透過 JS 顯示 */
-            padding: 20px 0;
-        }
-        .section.active {
-            display: block; /* 顯示當前活躍的區塊 */
-        }
-
-        /* 掃描介面樣式 */
-        #scan-area {
-            min-height: 250px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            text-align: center;
-            padding: 20px;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-            color: #666;
-            position: relative; /* 用於定位攝像頭影像 */
-            overflow: hidden; /* 防止攝像頭影像溢出 */
-            background-color: #e9ecef; /* 掃描區域背景 */
-            border-radius: 10px;
-        }
-        #scan-area video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* 填充整個區域，可能裁剪 */
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1; /* 確保在引導文字下方 */
-            border-radius: 10px;
-        }
-        #scan-area .overlay-text {
-            position: relative; /* 確保文字在攝像頭上方 */
-            z-index: 2;
-            background-color: rgba(255, 255, 255, 0.7); /* 半透明背景，讓文字更清晰 */
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        #scan-area .icon {
-            font-size: 4em; /* 大圖示 */
-            margin-bottom: 10px;
-        }
-        #identified-ingredients {
-            margin-top: 20px;
-            font-size: 1.4em;
-            text-align: center;
-            color: #0056b3;
-            font-weight: bold;
-        }
-        .ingredient-input-group {
-            margin-top: 30px;
-            text-align: center;
-        }
-        .ingredient-input-group label {
-            font-size: 1.5em;
-            margin-bottom: 10px;
-            display: block;
-        }
-        .ingredient-input-group input[type="text"] {
-            width: 70%;
-            padding: 15px;
-            font-size: 1.3em;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        .ingredient-tags {
-            margin-top: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .ingredient-tag {
-            background-color: #e9ecef;
-            border: 1px solid #ced4da;
-            padding: 10px 15px;
-            margin: 5px;
-            border-radius: 20px;
-            font-size: 1.2em;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .ingredient-tag:hover {
-            background-color: #d1d8df;
-        }
-
-
-        /* 食譜列表樣式 */
-        .recipe-list {
-            display: grid;
-            gap: 25px;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        }
-        .recipe-card {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.2s ease-in-out;
-        }
-        .recipe-card:hover {
-            transform: translateY(-5px);
-        }
-        .recipe-card img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-bottom: 1px solid #ddd;
-        }
-        .recipe-card-content {
-            padding: 15px;
-        }
-        .recipe-card h3 {
-            font-size: 1.6em;
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: #333;
-            text-align: left;
-        }
-        .recipe-card p {
-            font-size: 1.1em;
-            color: #555;
-            margin-bottom: 5px;
-        }
-        .recipe-card .tags span {
-            display: inline-block;
-            background-color: #e0f7fa;
-            color: #00796b;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.9em;
-            margin-right: 5px;
-            margin-bottom: 5px;
-        }
-
-        /* 食譜步驟樣式 */
-        #recipe-title-display {
-            font-size: 2.2em;
-            text-align: center;
-            color: #0056b3;
-            margin-bottom: 30px;
-        }
-        .recipe-info {
-            font-size: 1.3em;
-            line-height: 1.8;
-            margin-bottom: 20px;
-        }
-        .recipe-info p strong {
-            color: #666;
-        }
-
-        .recipe-step {
-            background-color: #f9f9f9;
-            border: 1px solid #eee;
-            padding: 25px;
-            margin-bottom: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .step-number {
-            font-size: 2em;
-            font-weight: bold;
-            color: #e67e22; /* 橙色數字 */
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .step-image img {
-            width: 100%;
-            height: auto;
-            max-height: 300px;
-            object-fit: contain; /* 圖片完整顯示 */
-            display: block;
-            margin: 0 auto 20px auto;
-            border-radius: 8px;
-        }
-        .step-text {
-            font-size: 1.8em; /* 烹飪步驟大字體 */
-            color: #333;
-            text-align: center;
-        }
-        .step-timer {
-            font-size: 1.5em;
-            color: #c0392b; /* 紅色計時器 */
-            font-weight: bold;
-            text-align: center;
-            margin-top: 15px;
-        }
-        .navigation-buttons {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 30px;
-        }
-        .navigation-buttons button {
-            width: 45%;
-            margin: 0;
-        }
-        .nav-back { background-color: #6c757d; }
-        .nav-back:hover { background-color: #5a6268; }
-        .nav-next { background-color: #007bff; }
-        .nav-next:hover { background-color: #0056b3; }
-
-        .top-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            background-color: #007bff;
-            color: white;
-            font-size: 1.5em;
-        }
-        .top-nav button {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.8em;
-            cursor: pointer;
-            margin: 0;
-            padding: 0 10px;
-            width: auto;
-            max-width: none;
-            box-shadow: none;
-        }
-        .top-nav button:hover {
-            opacity: 0.8;
-        }
-        .top-nav .title {
-            flex-grow: 1;
-            text-align: center;
-        }
-
-        /* 收藏和購物清單按鈕 */
-        .bottom-actions {
-            display: flex;
-            justify-content: space-around;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-top: 1px solid #eee;
-        }
-        .bottom-actions button {
-            width: 48%;
-            margin: 0;
-            padding: 15px;
-            font-size: 1.5em;
-        }
-        .favorite-btn { background-color: #ffc107; color: #333;}
-        .favorite-btn:hover { background-color: #e0a800;}
-        .shopping-btn { background-color: #17a2b8; }
-        .shopping-btn:hover { background-color: #138496; }
-
-        /* 確認識別結果彈窗 */
-        #recognition-modal {
-            display: none; /* 預設隱藏 */
-            position: fixed;
-            z-index: 1001;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4); /* 半透明黑色背景 */
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 30px;
-            border-radius: 15px;
-            width: 80%;
-            max-width: 500px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-        .modal-content h3 {
-            font-size: 1.8em;
-            color: #0056b3;
-            margin-bottom: 20px;
-        }
-        .modal-content .recognized-items {
-            font-size: 1.5em;
-            color: #333;
-            margin-bottom: 25px;
-            font-weight: bold;
-        }
-        .modal-content .modal-buttons button {
-            display: inline-block;
-            width: 45%;
-            margin: 0 5px;
-            padding: 15px 25px;
-            font-size: 1.5em;
-        }
-        .modal-confirm-btn { background-color: #28a745; }
-        .modal-confirm-btn:hover { background-color: #218838; }
-        .modal-re-scan-btn { background-color: #ffc107; color: #333;}
-        .modal-re-scan-btn:hover { background-color: #e0a800;}
-
-        /* 加載指示器 */
-        #loading-indicator {
-            display: none;
-            position: fixed;
-            z-index: 1002;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: white;
-            font-size: 2em;
-        }
-        .spinner {
-            border: 8px solid rgba(255,255,255,0.3);
-            border-top: 8px solid #fff;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-    </style>
-</head>
-<body>
-
-    <header class="top-nav" id="top-navbar" style="display: none;">
-        <button onclick="goBack()">&lt;</button>
-        <div class="title" id="nav-title">食譜名稱</div>
-        <button onclick="toggleVoiceGuide()">🔊</button>
-    </header>
-
-    <main class="container">
-        <section id="scan-page" class="section active">
-            <h1>智慧食譜助手</h1>
-            <button id="start-camera-btn">
-                開啟攝像頭掃描
-                <div class="icon">📸</div>
-            </button>
-
-            <div id="scan-area">
-                <video id="camera-stream" autoplay playsinline style="display: none;"></video>
-                <div class="overlay-text" id="scan-overlay-text">
-                    <span class="icon">💡</span>
-                    <p>請將食材對準鏡頭，然後點擊拍照</p>
-                    <p>保持光線充足與影像清晰</p>
-                </div>
-            </div>
-            <button id="take-photo-btn" style="display: none;">
-                <div class="icon">📷</div>
-                拍照識別食材
-            </button>
-            <canvas id="canvas" style="display: none;"></canvas> <div id="identified-ingredients" style="display: none;">
-                <p>已識別食材：<span id="ingredients-display"></span></p>
-                <button id="clear-identified-btn" style="background-color: #dc3545; margin-top: 10px; width: auto; padding: 10px 20px; font-size: 1.2em; max-width: none;">清空已識別食材</button>
-            </div>
-
-            <button id="confirm-ingredients-btn" style="display: none;">確認食材，尋找食譜</button>
-
-            <div class="ingredient-input-group">
-                <label for="manual-ingredient-input">手動輸入食材 (若掃描不便)</label>
-                <input type="text" id="manual-ingredient-input" placeholder="例如：雞蛋、米飯">
-                <button onclick="addManualIngredient()">加入食材</button>
-            </div>
-
-            <div class="ingredient-input-group">
-                <label>或從常用食材中選擇：</label>
-                <div class="ingredient-tags" id="common-ingredients-tags">
-                    </div>
-                <button id="find-recipes-manual-btn">查找食譜</button>
-            </div>
-        </section>
-
-        <section id="recipe-list-page" class="section">
-            <h2>推薦食譜</h2>
-            <div class="recipe-list" id="recipes-container">
-                </div>
-        </section>
-
-        <section id="recipe-detail-page" class="section">
-            <h2 id="recipe-title-display"></h2>
-            <div class="recipe-info">
-                <p><strong>所需食材：</strong><span id="recipe-ingredients-display"></span></p>
-                <p><strong>烹飪難度：</strong><span id="recipe-difficulty-display"></span></p>
-                <p><strong>預計時間：</strong><span id="recipe-time-display"></span></p>
-                <p><strong>健康提示：</strong><span id="recipe-health-display"></span></p>
-                <p><strong>簡介：</strong><span id="recipe-intro-display"></span></p>
-            </div>
-            <hr>
-            <h3>烹飪步驟</h3>
-            <div id="recipe-steps-container">
-                </div>
-
-            <div class="navigation-buttons">
-                <button class="nav-back" onclick="prevStep()">上一步</button>
-                <button class="nav-next" onclick="nextStep()">下一步</button>
-            </div>
-
-            <div class="bottom-actions">
-                <button class="favorite-btn" onclick="addToFavorites()">⭐ 加入最愛</button>
-                <button class="shopping-btn" onclick="generateShoppingList()">🛒 產生購物清單</button>
-            </div>
-        </section>
-    </main>
-
-    <div id="recognition-modal">
-        <div class="modal-content">
-            <h3>OpenRouter 識別結果</h3>
-            <p class="recognized-items">您掃描到了：<span id="modal-recognized-ingredients"></span></p>
-            <div class="modal-buttons">
-                <button class="modal-confirm-btn" onclick="confirmRecognition()">確認</button>
-                <button class="modal-re-scan-btn" onclick="hideRecognitionModal()">重新掃描/修改</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="loading-indicator">
-        <div class="spinner"></div>
-        <p>AI 正在努力識別中，請稍候...</p>
-    </div>
-
-
-    <script>
-        // JavaScript 用於控制頁面顯示邏輯、數據處理和互動
-
-        // 當前顯示的頁面
-        let currentPage = 'scan-page';
-        // 當前選中的食譜
-        let currentRecipe = null;
-        // 當前食譜的步驟
-        let currentRecipeSteps = [];
-        // 當前烹飪步驟索引
-        let currentStepIndex = 0;
-        // 語音導覽開關
-        let voiceGuideEnabled = false;
-
-        let videoStream = null; // 用於儲存攝像頭串流
-
-        // OpenRouter API 配置
-        const OPENROUTER_API_KEY = atob("c2stb3ItdjEtMzE2NjIwNGI1MjQ5MTg2MDFjMzMwNmY0YjFkMmVjYzAzZmZhMGMxNDQ4ODczNTZjODFjMmZiZjYzYzJlN2M4YQ=="); // **請替換為您的實際 API 金鑰！生產環境請勿直接暴露！**
-        const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-        // 選擇一個支援多模態輸入的 Gemma 模型或其變體。
-        // 請務必查閱 OpenRouter 文檔獲取最新和最合適的模型ID。
-        // 例如：可能會有類似 'google/gemma-vision' 或 'google/gemma-large-vision' 的模型，
-        // 或者需要搭配另一個視覺模型。這裡先用一個通用概念性的名稱。
-        const OPENROUTER_MODEL = 'google/gemini-pro-vision';
-
-
-        let mockRecipes = []; // 先宣告為空陣列
-
-        // 載入 recipes.json
-        async function loadRecipes() {
-            try {
-                const response = await fetch('recipes.json');
-if (!response.ok) throw new Error('載入食譜資料失敗');
-mockRecipes = await response.json();
-
-                // 重新生成常用食材標籤
-                updateCommonIngredients();
-                initializeCommonIngredientsTags();
-            } catch (e) {
-                alert('無法載入食譜資料：' + e.message);
-            }
-        }
-
-        // 重新計算常用食材
-        function updateCommonIngredients() {
-            window.commonIngredients = [];
-        }
-
-        // DOMContentLoaded 時載入食譜
-        document.addEventListener('DOMContentLoaded', () => {
-            loadRecipes();
-        });
-
-
-        // 頁面導航功能
-        function showPage(pageId) {
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            document.getElementById(pageId).classList.add('active');
-            currentPage = pageId;
-
-            // 根據頁面顯示/隱藏導航欄
-            if (pageId === 'scan-page') {
-                topNavbar.style.display = 'none';
-            } else {
-                topNavbar.style.display = 'flex';
-                // 更新導航欄標題
-                if (pageId === 'recipe-list-page') {
-                    navTitle.textContent = '推薦食譜';
-                } else if (pageId === 'recipe-detail-page' && currentRecipe) {
-                    navTitle.textContent = currentRecipe.name;
-                }
-            }
-        }
-
-        // 返回上一頁
-        function goBack() {
-            if (currentPage === 'recipe-list-page') {
-                showPage('scan-page');
-                // 停止攝像頭串流 (如果正在運行)
-                stopCamera();
-            } else if (currentPage === 'recipe-detail-page') {
-                showPage('recipe-list-page');
-            }
-        }
-
-        // DOM 元素快取
-const startCameraButton = document.getElementById('start-camera-btn');
-const takePhotoButton = document.getElementById('take-photo-btn');
-const clearIdentifiedButton = document.getElementById('clear-identified-btn');
-const confirmIngredientsButton = document.getElementById('confirm-ingredients-btn');
-const findRecipesManualButton = document.getElementById('find-recipes-manual-btn');
-const manualIngredientInput = document.getElementById('manual-ingredient-input');
-const cameraStream = document.getElementById('camera-stream');
-const scanOverlayText = document.getElementById('scan-overlay-text');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const identifiedIngredientsDiv = document.getElementById('identified-ingredients');
-const ingredientsDisplay = document.getElementById('ingredients-display');
-const recipesContainer = document.getElementById('recipes-container');
-const recipeTitleDisplay = document.getElementById('recipe-title-display');
-const recipeIngredientsDisplay = document.getElementById('recipe-ingredients-display');
-const recipeDifficultyDisplay = document.getElementById('recipe-difficulty-display');
-const recipeTimeDisplay = document.getElementById('recipe-time-display');
-const recipeHealthDisplay = document.getElementById('recipe-health-display');
-const recipeIntroDisplay = document.getElementById('recipe-intro-display');
-const recipeStepsContainer = document.getElementById('recipe-steps-container');
-const topNavbar = document.getElementById('top-navbar');
-const navTitle = document.getElementById('nav-title');
-const loadingIndicator = document.getElementById('loading-indicator');
-const recognitionModal = document.getElementById('recognition-modal');
-const modalRecognizedIngredients = document.getElementById('modal-recognized-ingredients');
-
-// 已識別的食材集合
-const identifiedIngredients = new Set();
-
-        // 攝像頭控制
-startCameraButton.addEventListener('click', startCamera);
-takePhotoButton.addEventListener('click', takePhoto);
-clearIdentifiedButton.addEventListener('click', clearIdentifiedIngredients);
-confirmIngredientsButton.addEventListener('click', findRecipesFromIdentified);
-findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
-
-        async function startCamera() {
-            try {
-                // 檢查是否有攝像頭權限
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); // 優先使用後置攝像頭
-                cameraStream.srcObject = stream;
-                videoStream = stream; // 保存串流以便停止
-                cameraStream.style.display = 'block';
-                scanOverlayText.style.display = 'none';
-                takePhotoButton.style.display = 'block';
-                startCameraButton.style.display = 'none';
-            } catch (err) {
-                console.error("無法開啟攝像頭：", err);
-                alert("無法開啟攝像頭，請檢查您的設備或瀏覽器權限設置。");
-                scanOverlayText.innerHTML = '<span class="icon">❌</span><p>無法開啟攝像頭。</p><p>請確認已授予權限。</p>';
-            }
-        }
-
-        function stopCamera() {
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-                videoStream = null;
-                cameraStream.srcObject = null;
-                cameraStream.style.display = 'none';
-                scanOverlayText.style.display = 'block';
-                takePhotoButton.style.display = 'none';
-                startCameraButton.style.display = 'block';
-            }
-        }
-
-        async function takePhoto() {
-            if (!videoStream) {
-                alert("請先開啟攝像頭！");
-                return;
-            }
-
-            // 取得原始影像尺寸
-            const originalWidth = cameraStream.videoWidth;
-            const originalHeight = cameraStream.videoHeight;
-
-            // 設定最大尺寸
-            const maxSize = 1000;
-            let targetWidth = originalWidth;
-            let targetHeight = originalHeight;
-
-            // 計算縮放比例
-            if (originalWidth > maxSize || originalHeight > maxSize) {
-                const scale = Math.min(maxSize / originalWidth, maxSize / originalHeight);
-                targetWidth = Math.round(originalWidth * scale);
-                targetHeight = Math.round(originalHeight * scale);
-            }
-
-            // 調整 canvas 尺寸
-            canvas.width = targetWidth;
-            canvas.height = targetHeight;
-            ctx.drawImage(cameraStream, 0, 0, targetWidth, targetHeight);
-
-            // 將 canvas 內容轉換為 Base64 數據 URL
-            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8); // 0.8 是圖像品質
-
-            showLoading(); // 顯示加載指示器
-            await analyzeImageWithOpenRouter(imageDataUrl); // 調用 OpenRouter API 進行分析
-        }
-
-        async function analyzeImageWithOpenRouter(imageDataUrl) {
-            try {
-                // 提取 Base64 數據，移除前綴 "data:image/jpeg;base64,"
-                const base64Image = imageDataUrl.split(',')[1];
-
-                const response = await fetch(OPENROUTER_API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: OPENROUTER_MODEL,
-                        messages: [
-                            {
-                                role: 'user',
-                                content: [
-                                    {
-                                        type: 'text',
-                                        text: '請列出圖片中出現的食物或成分，並用「、」分隔，例如蘋果、香蕉、牛奶。如果沒有找到任何食物，請回答「無」。'
-                                    },
-                                    {
-                                        type: 'image_url',
-                                        image_url: {
-                                            url: `data:image/jpeg;base64,${base64Image}`
-                                        }
-                                    }
-                                ]
-                            }
-                        ]
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('OpenRouter API 錯誤:', errorData);
-                    throw new Error(`OpenRouter API 呼叫失敗: ${response.status} ${response.statusText} - ${errorData.message || ''}`);
-                }
-
-                const data = await response.json();
-                console.log('OpenRouter API 回應:', data);
-
-                let recognizedText = '無'; // 預設值
-                if (data.choices && data.choices.length > 0 && data.choices[0].message && data.choices[0].message.content) {
-                    recognizedText = data.choices[0].message.content.trim();
-                }
-
-                // 彈出模態框顯示識別結果
-                showRecognitionModal(recognizedText);
-
-            } catch (error) {
-                console.error('識別圖片時發生錯誤:', error);
-                alert('識別食材時發生錯誤，請稍後再試。\n' + error.message);
-                hideLoading(); // 隱藏加載指示器
-            } finally {
-                // 不在這裡隱藏 loading，在 confirmRecognition 或 hideRecognitionModal 裡隱藏
-            }
-        }
-
-        function showLoading() {
-            loadingIndicator.style.display = 'flex';
-        }
-
-        function hideLoading() {
-            loadingIndicator.style.display = 'none';
-        }
-
-        function showRecognitionModal(recognizedItems) {
-            // modalRecognizedIngredients.textContent = recognizedItems;
-            modalRecognizedIngredients.textContent = typeof recognizedItems === 'string' ? recognizedItems : JSON.stringify(recognizedItems);
-            recognitionModal.style.display = 'flex';
-        }
-
-        function hideRecognitionModal() {
-            recognitionModal.style.display = 'none'; // 隱藏模態框
-            hideLoading(); // 在關閉模態框時隱藏加載
-        }
-
-        function confirmRecognition() {
-            const recognizedItemsText = modalRecognizedIngredients.textContent;
-            hideRecognitionModal(); // 隱藏模態框
-
-            if (recognizedItemsText && recognizedItemsText !== '無') {
-                // 1. 加入食材
-                const ingredients = [];
-                recognizedItemsText.split('、').forEach(item => {
-                    const trimmedItem = item.trim();
-                    if (trimmedItem) {
-                        addIngredient(trimmedItem);
-                        ingredients.push(trimmedItem);
-                    }
-                });
-
-                // 2. 顯示「識別完成」提示
-                showTemporaryMessage('識別完成，正在為您尋找食譜...');
-
-                // 3. 直接搜尋並顯示食譜
-                setTimeout(() => {
-                    filterAndDisplayRecipes(ingredients);
-                    hideLoading();
-                }, 1200); // 1.2秒後跳轉，讓使用者看到提示
-            } else {
-                alert('沒有識別到食材，請嘗試重新掃描或手動輸入。');
-                hideLoading();
-            }
-        }
-
-        // 顯示短暫訊息
-        function showTemporaryMessage(msg) {
-            let msgDiv = document.createElement('div');
-            msgDiv.textContent = msg;
-            msgDiv.style.position = 'fixed';
-            msgDiv.style.top = '30%';
-            msgDiv.style.left = '50%';
-            msgDiv.style.transform = 'translate(-50%, -50%)';
-            msgDiv.style.background = 'rgba(0,0,0,0.8)';
-            msgDiv.style.color = '#fff';
-            msgDiv.style.padding = '30px 50px';
-            msgDiv.style.borderRadius = '15px';
-            msgDiv.style.fontSize = '2em';
-            msgDiv.style.zIndex = 2000;
-            document.body.appendChild(msgDiv);
-            setTimeout(() => {
-                msgDiv.remove();
-            }, 1000);
-        }
-
-        // 添加食材到列表
-        function addIngredient(ingredientName) {
-            const normalizedIngredient = ingredientName.toLowerCase(); // 統一小寫
-
-            if (!identifiedIngredients.has(normalizedIngredient)) {
-                identifiedIngredients.add(normalizedIngredient);
-                updateIdentifiedIngredientsDisplay();
-                // 顯示確認按鈕和清空按鈕
-                identifiedIngredientsDiv.style.display = 'block';
-                confirmIngredientsButton.style.display = 'block';
-            }
-            manualIngredientInput.value = ''; // 清空手動輸入框
-        }
-
-        // 更新顯示已識別食材
-        function updateIdentifiedIngredientsDisplay() {
-            if (identifiedIngredients.size === 0) {
-                ingredientsDisplay.textContent = '無';
-                identifiedIngredientsDiv.style.display = 'none';
-                confirmIngredientsButton.style.display = 'none';
-            } else {
-                ingredientsDisplay.textContent = Array.from(identifiedIngredients).map(item => {
-                    // 將首字母大寫以提高可讀性
-                    return item.charAt(0).toUpperCase() + item.slice(1);
-                }).join('、');
-                identifiedIngredientsDiv.style.display = 'block';
-                confirmIngredientsButton.style.display = 'block';
-            }
-        }
-
-        // 清空已識別食材
-        function clearIdentifiedIngredients() {
-            identifiedIngredients.clear();
-            updateIdentifiedIngredientsDisplay();
-        }
-
-        // 手動添加食材
-        function addManualIngredient() {
-            const input = manualIngredientInput.value.trim();
-            if (input) {
-                input.split(/[,、\s]+/).forEach(item => { // 支持逗號、頓號或空格分隔
-                    if (item) addIngredient(item);
-                });
-            } else {
-                alert('請輸入食材名稱！');
-            }
-        }
-
-        // 根據已識別的食材查找食譜
-        function findRecipesFromIdentified() {
-            if (identifiedIngredients.size === 0) {
-                alert('請先掃描或手動輸入食材！');
-                return;
-            }
-            const ingredientsArray = Array.from(identifiedIngredients);
-            filterAndDisplayRecipes(ingredientsArray);
-        }
-
-        // 根據手動輸入的食材查找食譜
-        function findRecipesFromManualInput() {
-            const input = manualIngredientInput.value.trim();
-            const selectedTags = Array.from(commonIngredientsTagsContainer.children)
-                                    .filter(tag => tag.classList.contains('selected')) // 如果有選中狀態，這裡可以擴展
-                                    .map(tag => tag.textContent);
-
-            let ingredientsToSearch = [];
-            if (input) {
-                ingredientsToSearch = ingredientsToSearch.concat(input.split(/[,、\s]+/).filter(item => item !== ''));
-            }
-            ingredientsToSearch = ingredientsToSearch.concat(selectedTags);
-
-            if (ingredientsToSearch.length === 0) {
-                alert('請輸入或選擇食材！');
-                return;
-            }
-
-            filterAndDisplayRecipes(ingredientsToSearch);
-        }
-
-
-        // 過濾並顯示食譜
-        function filterAndDisplayRecipes(inputIngredients) {
-            const normalizedInput = inputIngredients.map(item => item.toLowerCase());
-            const foundRecipes = mockRecipes.filter(recipe => {
-                // 檢查食譜的關鍵食材是否都在輸入食材中
-                return recipe.keyIngredients.every(keyIng => normalizedInput.includes(keyIng.toLowerCase()));
-            });
-
-            recipesContainer.innerHTML = ''; // 清空現有食譜
-
-            if (foundRecipes.length > 0) {
-                foundRecipes.forEach(recipe => {
-                    const card = document.createElement('div');
-                    card.classList.add('recipe-card');
-                    card.innerHTML = `
-                        <img src="${recipe.image}" alt="${recipe.name}">
-                        <div class="recipe-card-content">
-                            <h3>${recipe.name}</h3>
-                            <p><strong>難度:</strong> ${recipe.difficulty}</p>
-                            <p><strong>時間:</strong> ${recipe.time}</p>
-                            <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
-                            <div class="tags">
-                                ${recipe.keyIngredients.map(ing => `<span>${ing}</span>`).join('')}
-                            </div>
-                        </div>
-                    `;
-                    card.onclick = () => showRecipeDetail(recipe);
-                    recipesContainer.appendChild(card);
-                });
-                showPage('recipe-list-page');
-                stopCamera(); // 轉到食譜列表頁時停止攝像頭
-            } else {
-                alert('很抱歉，沒有找到符合您食材的食譜。請嘗試調整食材列表。');
-            }
-        }
-
-        // 顯示食譜詳情
-        function showRecipeDetail(recipe) {
-            currentRecipe = recipe;
-            currentRecipeSteps = recipe.steps;
-            currentStepIndex = 0; // 重置步驟索引
-            navTitle.textContent = recipe.name; // 更新頂部導航欄標題
-
-            recipeTitleDisplay.textContent = recipe.name;
-            recipeIngredientsDisplay.textContent = recipe.ingredients.join('、');
-            recipeDifficultyDisplay.textContent = recipe.difficulty;
-            recipeTimeDisplay.textContent = recipe.time;
-            recipeHealthDisplay.textContent = recipe.health;
-            recipeIntroDisplay.textContent = recipe.intro;
-
-            displayCurrentStep(); // 顯示第一個步驟
-            showPage('recipe-detail-page');
-        }
-
-        // 顯示當前步驟
-        function displayCurrentStep() {
-            recipeStepsContainer.innerHTML = '';
-            if (currentRecipeSteps.length === 0) {
-                recipeStepsContainer.innerHTML = '<p style="text-align: center; font-size: 1.5em; color: #dc3545;">沒有烹飪步驟信息。</p>';
-                return;
-            }
-
-            const step = currentRecipeSteps[currentStepIndex];
-            const stepDiv = document.createElement('div');
-            stepDiv.classList.add('recipe-step');
-            stepDiv.innerHTML = `
-                <div class="step-number">步驟 ${step.number} / ${currentRecipeSteps.length}</div>
-                ${step.image ? `<div class="step-image"><img src="${step.image}" alt="步驟 ${step.number} 圖片"></div>` : ''}
-                <div class="step-text">${step.text}</div>
-                ${step.timer ? `<div class="step-timer">計時器：${step.timer}</div>` : ''}
-            `;
-            recipeStepsContainer.appendChild(stepDiv);
-
-            // 更新導航按鈕狀態
-            document.querySelector('.nav-back').disabled = (currentStepIndex === 0);
-            document.querySelector('.nav-next').disabled = (currentStepIndex === currentRecipeSteps.length - 1);
-
-            // 如果語音導覽啟用，則朗讀當前步驟
-            if (voiceGuideEnabled) {
-                speakText(`步驟 ${step.number}：${step.text}`);
-                if (step.timer) {
-                    speakText(`計時器：${step.timer}`);
-                }
-            }
-        }
-
-        // 上一步
-        function prevStep() {
-            if (currentStepIndex > 0) {
-                currentStepIndex--;
-                displayCurrentStep();
-            }
-        }
-
-        // 下一步
-        function nextStep() {
-            if (currentStepIndex < currentRecipeSteps.length - 1) {
-                currentStepIndex++;
-                displayCurrentStep();
-            }
-        }
-
-        // 語音導覽開關
-        function toggleVoiceGuide() {
-            voiceGuideEnabled = !voiceGuideEnabled;
-            alert(`語音導覽已${voiceGuideEnabled ? '開啟' : '關閉'}`);
-            // 可以改變按鈕圖示或顏色來表示狀態
-        }
-
-        // 文本轉語音功能
-        function speakText(text) {
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'zh-TW'; // 設定語音語言為繁體中文
-                window.speechSynthesis.speak(utterance);
-            } else {
-                console.warn('您的瀏覽器不支持 Web Speech API。');
-            }
-        }
-
-        // 收藏功能 (佔位符)
-        function addToFavorites() {
-            if (currentRecipe) {
-                alert(`已將「${currentRecipe.name}」加入您的最愛！(此為模擬功能)`);
-                // 實際應用中會將食譜數據保存到本地儲存或後端
-            }
-        }
-
-        // 生成購物清單功能 (佔位符)
-        function generateShoppingList() {
-            if (currentRecipe) {
-                const ingredients = currentRecipe.ingredients.join('、');
-                alert(`為「${currentRecipe.name}」生成購物清單：\n${ingredients}\n(此為模擬功能)`);
-                // 實際應用中會將食材整理成更友好的購物清單格式
-            }
-        }
-
-        function initializeCommonIngredientsTags() {
-            // 取得所有食譜的食材，統計出現次數，取前幾名作為常用食材
-            const ingredientCount = {};
-            mockRecipes.forEach(recipe => {
-                recipe.ingredients.forEach(ing => {
-                    ingredientCount[ing] = (ingredientCount[ing] || 0) + 1;
-                });
-            });
-            // 取出現次數最多的前12個食材
-            const sorted = Object.entries(ingredientCount).sort((a, b) => b[1] - a[1]);
-            const topIngredients = sorted.slice(0, 12).map(([ing]) => ing);
-
-            // 清空舊標籤
-            commonIngredientsTagsContainer.innerHTML = '';
-            topIngredients.forEach(ing => {
-                const tag = document.createElement('span');
-                tag.className = 'ingredient-tag';
-                tag.textContent = ing;
-                tag.onclick = function () {
-                    tag.classList.toggle('selected');
-                };
-                commonIngredientsTagsContainer.appendChild(tag);
-            });
-        }
-    </script>
-</body>
-</html>
+[
+    {
+        "name": "滷水拼盤",
+        "keyIngredients": ["豬肉", "豬耳", "豬腸", "雞蛋", "豆乾", "滷水汁"],
+        "ingredients": ["豬肉", "豬耳", "豬腸", "雞蛋", "豆乾", "滷水汁", "八角", "桂皮", "香葉", "草果", "薑", "蔥"],
+        "difficulty": "中級",
+        "time": "120分鐘",
+        "health": "蛋白質豐富",
+        "intro": "多種食材滷製而成，風味濃郁，是下酒好菜。",
+        "image": "https://via.placeholder.com/300x200?text=滷水拼盤",
+        "steps": [
+            { "number": 1, "text": "將豬肉、豬耳、豬腸洗淨焯水。雞蛋煮熟剝殼，豆乾切塊。", "image": "https://via.placeholder.com/400x300?text=準備滷水食材", "timer": null },
+            { "number": 2, "text": "鍋中加入滷水汁，放入所有食材，大火煮開轉小火滷煮至少1小時，讓食材充分入味。", "image": "https://via.placeholder.com/400x300?text=滷煮", "timer": "60分鐘" },
+            { "number": 3, "text": "關火後讓食材在滷汁中浸泡更長時間，上桌前切片擺盤即可。", "image": "https://via.placeholder.com/400x300?text=擺盤", "timer": null }
+        ]
+    },
+    {
+        "name": "涼拌茄子",
+        "keyIngredients": ["茄子", "蒜", "醬油", "醋"],
+        "ingredients": ["茄子", "蒜", "醬油", "醋", "麻油", "香菜", "少許糖"],
+        "difficulty": "初級",
+        "time": "20分鐘",
+        "health": "清爽、易消化",
+        "intro": "清涼開胃的夏季小菜，茄子軟糯，蒜香濃郁。",
+        "image": "https://via.placeholder.com/300x200?text=涼拌茄子",
+        "steps": [
+            { "number": 1, "text": "茄子洗淨切成長條狀，蒸熟或煮熟。", "image": "https://via.placeholder.com/400x300?text=蒸茄子", "timer": "10分鐘" },
+            { "number": 2, "text": "將蒜末、醬油、醋、麻油、少許糖和鹽混合成醬汁。", "image": "https://via.placeholder.com/400x300?text=調醬汁", "timer": null },
+            { "number": 3, "text": "蒸好的茄子放涼後，淋上調好的醬汁，撒上香菜即可。", "image": "https://via.placeholder.com/400x300?text=涼拌", "timer": null }
+        ]
+    },
+    {
+        "name": "涼拌黃瓜",
+        "keyIngredients": ["黃瓜", "蒜", "醋"],
+        "ingredients": ["黃瓜", "蒜", "醋", "麻油", "辣椒油", "少許糖"],
+        "difficulty": "初級",
+        "time": "15分鐘",
+        "health": "清脆、低卡",
+        "intro": "簡單開胃的家常小菜，黃瓜清爽，酸辣可口。",
+        "image": "https://via.placeholder.com/300x200?text=涼拌黃瓜",
+        "steps": [
+            { "number": 1, "text": "黃瓜洗淨拍碎或切片，用少許鹽醃製10分鐘出水。", "image": "https://via.placeholder.com/400x300?text=拍黃瓜", "timer": "10分鐘" },
+            { "number": 2, "text": "蒜末、醋、醬油、麻油和少許糖混合成醬汁。", "image": "https://via.placeholder.com/400x300?text=調醬", "timer": null },
+            { "number": 3, "text": "將黃瓜瀝乾水分，淋上醬汁，拌勻即可。", "image": "https://via.placeholder.com/400x300?text=拌勻", "timer": null }
+        ]
+    },
+    {
+        "name": "蒜蓉炒菠菜",
+        "keyIngredients": ["菠菜", "蒜"],
+        "ingredients": ["菠菜", "蒜", "鹽", "食用油"],
+        "difficulty": "初級",
+        "time": "10分鐘",
+        "health": "高纖維",
+        "intro": "簡單快速的家常素菜，菠菜清甜，蒜香濃郁。",
+        "image": "https://via.placeholder.com/300x200?text=蒜蓉炒菠菜",
+        "steps": [
+            { "number": 1, "text": "菠菜洗淨瀝乾，切段。蒜切末。", "image": "https://via.placeholder.com/400x300?text=準備菠菜", "timer": null },
+            { "number": 2, "text": "鍋中放油燒熱，放入蒜末爆香。", "image": "https://via.placeholder.com/400x300?text=爆香蒜", "timer": null },
+            { "number": 3, "text": "倒入菠菜大火快速翻炒至軟身，加鹽調味即可。", "image": "https://via.placeholder.com/400x300?text=炒菠菜", "timer": null }
+        ]
+    },
+    {
+        "name": "清炒小白菜",
+        "keyIngredients": ["小白菜", "蒜"],
+        "ingredients": ["小白菜", "蒜", "鹽", "食用油"],
+        "difficulty": "初級",
+        "time": "10分鐘",
+        "health": "高纖維",
+        "intro": "清淡爽口，保留小白菜的原味。",
+        "image": "https://via.placeholder.com/300x200?text=清炒小白菜",
+        "steps": [
+            { "number": 1, "text": "小白菜洗淨切段，蒜切末。", "image": "https://via.placeholder.com/400x300?text=準備小白菜", "timer": null },
+            { "number": 2, "text": "鍋中放油燒熱，放入蒜末爆香。", "image": "https://via.placeholder.com/400x300?text=爆香蒜", "timer": null },
+            { "number": 3, "text": "倒入小白菜大火快速翻炒至軟身，加鹽調味即可。", "image": "https://via.placeholder.com/400x300?text=炒小白菜", "timer": null }
+        ]
+    },
+    {
+        "name": "醋溜土豆絲",
+        "keyIngredients": ["土豆", "醋", "蒜"],
+        "ingredients": ["土豆", "醋", "蒜", "辣椒", "花椒", "鹽", "糖", "食用油"],
+        "difficulty": "中級",
+        "time": "20分鐘",
+        "health": "開胃",
+        "intro": "酸辣爽脆，非常下飯的家常菜。",
+        "image": "https://via.placeholder.com/300x200?text=醋溜土豆絲",
+        "steps": [
+            { "number": 1, "text": "土豆去皮切細絲，用清水沖洗數遍去除澱粉，瀝乾。", "image": "https://via.placeholder.com/400x300?text=切土豆絲", "timer": null },
+            { "number": 2, "text": "鍋中放油燒熱，放入蒜末、乾辣椒、花椒爆香。", "image": "https://via.placeholder.com/400x300?text=爆香", "timer": null },
+            { "number": 3, "text": "倒入土豆絲大火快速翻炒，加入醋、鹽、糖調味，炒至土豆絲熟透變脆即可。", "image": "https://via.placeholder.com/400x300?text=炒土豆絲", "timer": null }
+        ]
+    },
+    {
+        "name": "番茄炒蛋",
+        "keyIngredients": ["番茄", "雞蛋"],
+        "ingredients": ["番茄", "雞蛋", "蔥", "鹽", "糖", "食用油"],
+        "difficulty": "初級",
+        "time": "15分鐘",
+        "health": "高纖易消化、素食",
+        "intro": "經典家常菜，番茄的酸甜與雞蛋的滑嫩完美結合。",
+        "image": "https://via.placeholder.com/300x200?text=番茄炒蛋",
+        "steps": [
+            { "number": 1, "text": "番茄洗淨切塊，雞蛋打散加入少許鹽。", "image": "https://via.placeholder.com/400x300?text=準備番茄雞蛋", "timer": null },
+            { "number": 2, "text": "鍋中放油燒熱，倒入蛋液快速炒熟，盛出備用。", "image": "https://via.placeholder.com/400x300?text=炒蛋", "timer": null },
+            { "number": 3, "text": "鍋中再加少許油，放入番茄塊炒出汁，加入少許糖和鹽調味。", "image": "https://via.placeholder.com/400x300?text=炒番茄", "timer": null },
+            { "number": 4, "text": "倒入炒好的雞蛋，快速翻炒均勻，撒上蔥花即可。", "image": "https://via.placeholder.com/400x300?text=番茄雞蛋合炒", "timer": null }
+        ]
+    },
+    {
+        "name": "蒜蓉炒空心菜",
+        "keyIngredients": ["空心菜", "蒜"],
+        "ingredients": ["空心菜", "蒜", "鹽", "食用油"],
+        "difficulty": "初級",
+        "time": "10分鐘",
+        "health": "高纖維",
+        "intro": "夏季常見的快手菜，空心菜清脆爽口。",
+        "image": "https://via.placeholder.com/300x200?text=蒜蓉炒空心菜",
+        "steps": [
+            { "number": 1, "text": "空心菜洗淨切段，蒜切末。", "image": "https://via.placeholder.com/400x300?text=準備空心菜", "timer": null },
+            { "number": 2, "text": "鍋中放油燒熱，放入蒜末爆香。", "image": "https://via.placeholder.com/400x300?text=爆香蒜", "timer": null },
+            { "number": 3, "text": "倒入空心菜大火快速翻炒至軟身，加鹽調味即可。", "image": "https://via.placeholder.com/400x300?text=炒空心菜", "timer": null }
+        ]
+    },
+    {
+        "name": "涼拌海帶絲",
+        "keyIngredients": ["海帶", "蒜", "醋"],
+        "ingredients": ["海帶", "蒜", "醋", "麻油", "辣椒油", "醬油", "少許糖"],
+        "difficulty": "初級",
+        "time": "20分鐘",
+        "health": "低卡、高碘",
+        "intro": "清爽開胃，營養豐富的海帶小菜。",
+        "image": "https://via.placeholder.com/300x200?text=涼拌海帶絲",
+        "steps": [
+            { "number": 1, "text": "乾海帶提前泡發後洗淨切絲，煮熟後撈出放涼。", "image": "https://via.placeholder.com/400x300?text=處理海帶", "timer": "10分鐘" },
+            { "number": 2, "text": "蒜末、醋、醬油、麻油、辣椒油混合成醬汁。", "image": "https://via.placeholder.com/400x300?text=調醬汁", "timer": null },
+            { "number": 3, "text": "將海帶絲與醬汁拌勻即可。", "image": "https://via.placeholder.com/400x300?text=拌海帶絲", "timer": null }
+        ]
+    },
+    {
+        "name": "蚝油生菜",
+        "keyIngredients": ["生菜", "蚝油", "蒜"],
+        "ingredients": ["生菜", "蚝油", "蒜", "白糖", "食用油", "水"],
+        "difficulty": "初級",
+        "time": "10分鐘",
+        "health": "清淡、易消化",
+        "intro": "簡單快手，生菜清脆，蚝油提鮮。",
+        "image": "https://via.placeholder.com/300x200?text=蚝油生菜",
+        "steps": [
+            { "number": 1, "text": "生菜洗淨瀝乾。蒜切末。", "image": "https://via.placeholder.com/400x300?text=準備生菜", "timer": null },
+            { "number": 2, "text": "鍋中燒水，水開後放入生菜焯燙幾秒迅速撈出。", "image": "https://via.placeholder.com/400x300?text=焯生菜", "timer": "1分鐘" },
+            { "number": 3, "text": "另起鍋，放油燒熱，爆香蒜末，加入蚝油、少許水和糖煮成醬汁。", "image": "https://via.placeholder.com/400x300?text=煮醬汁", "timer": null },
+            { "number": 4, "text": "將焯好的生菜擺盤，淋上蚝油醬汁即可。", "image": "https://via.placeholder.com/400x300?text=淋醬", "timer": null }
+        ]
+    },
+    {
+        "name": "麻婆豆腐",
+        "keyIngredients": ["豆腐", "豬肉", "豆瓣醬", "花椒", "辣椒"],
+        "ingredients": ["豆腐", "豬肉", "豆瓣醬", "花椒", "辣椒粉", "蒜", "薑", "蔥", "食用油", "高湯", "水澱粉"],
+        "difficulty": "中級",
+        "time": "25分鐘",
+        "health": "麻辣開胃",
+        "intro": "經典川菜，豆腐滑嫩，麻辣鮮香。",
+        "image": "https://via.placeholder.com/300x200?text=麻婆豆腐",
+        "steps": [
+            { "number": 1, "text": "豆腐切小塊，用開水加少許鹽焯燙幾分鐘後撈出瀝乾。豬肉剁成肉末。", "image": "https://via.placeholder.com/400x300?text=準備豆腐肉末", "timer": "5分鐘" },
+            { "number": 2, "text": "鍋中放油，炒香肉末，加入豆瓣醬炒出紅油，再加入蒜末、薑末、辣椒粉、花椒粉炒香。", "image": "https://via.placeholder.com/400x300?text=炒肉末醬料", "timer": null },
+            { "number": 3, "text": "加入適量高湯或水，放入豆腐煮開，小火慢煮幾分鐘讓豆腐入味。", "image": "https://via.placeholder.com/400x300?text=煮豆腐", "timer": "5分鐘" },
+            { "number": 4, "text": "勾芡，撒上蔥花即可。", "image": "https://via.placeholder.com/400x300?text=勾芡", "timer": null }
+        ]
+    },
+    {
+        "name": "豆豉鯪魚油麥菜",
+        "keyIngredients": ["油麥菜", "豆豉鯪魚罐頭"],
+        "ingredients": ["油麥菜", "豆豉鯪魚罐頭", "蒜", "食用油"],
+        "difficulty": "初級",
+        "time": "15分鐘",
+        "health": "方便快捷",
+        "intro": "香港家常菜，豆豉鯪魚的鹹香與油麥菜的清甜結合。",
+        "image": "https://via.placeholder.com/300x200?text=豆豉鯪魚油麥菜",
+        "steps": [
+            { "number": 1, "text": "油麥菜洗淨切段。打開豆豉鯪魚罐頭，魚肉輕輕分開。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "鍋中放少許罐頭裡的油燒熱，爆香蒜末。", "image": "https://via.placeholder.com/400x300?text=爆香", "timer": null },
+            { "number": 3, "text": "倒入油麥菜大火快速翻炒，加入豆豉和部分鯪魚肉，炒至油麥菜變軟即可。", "image": "https://via.placeholder.com/400x300?text=快炒", "timer": null }
+        ]
+    },
+    {
+        "name": "蒜蓉蒸茄子",
+        "keyIngredients": ["茄子", "蒜", "醬油"],
+        "ingredients": ["茄子", "蒜", "醬油", "麻油", "蔥花", "食用油"],
+        "difficulty": "初級",
+        "time": "20分鐘",
+        "health": "清蒸、健康",
+        "intro": "蒜香四溢，茄子軟糯，原汁原味。",
+        "image": "https://via.placeholder.com/300x200?text=蒜蓉蒸茄子",
+        "steps": [
+            { "number": 1, "text": "茄子洗淨切成長條，鋪在盤中。蒜切末。", "image": "https://via.placeholder.com/400x300?text=準備茄子", "timer": null },
+            { "number": 2, "text": "將茄子放入蒸鍋中，大火蒸約10-15分鐘至軟爛。", "image": "https://via.placeholder.com/400x300?text=蒸茄子", "timer": "15分鐘" },
+            { "number": 3, "text": "蒸茄子時，將蒜末、醬油、麻油混合成醬汁。", "image": "https://via.placeholder.com/400x300?text=調醬汁", "timer": null },
+            { "number": 4, "text": "蒸好的茄子取出，淋上醬汁，撒上蔥花即可。", "image": "https://via.placeholder.com/400x300?text=淋醬", "timer": null }
+        ]
+    },
+    {
+        "name": "涼拌豆芽",
+        "keyIngredients": ["豆芽", "蒜", "醋"],
+        "ingredients": ["豆芽", "蒜", "醋", "麻油", "辣椒油", "醬油", "少許糖"],
+        "difficulty": "初級",
+        "time": "15分鐘",
+        "health": "清脆、低卡",
+        "intro": "簡單清爽的開胃小菜。",
+        "image": "https://via.placeholder.com/300x200?text=涼拌豆芽",
+        "steps": [
+            { "number": 1, "text": "豆芽洗淨，放入滾水中焯燙2-3分鐘後迅速撈出，用冷水沖涼瀝乾。", "image": "https://via.placeholder.com/400x300?text=焯豆芽", "timer": "3分鐘" },
+            { "number": 2, "text": "蒜末、醋、醬油、麻油、少許糖和鹽混合成醬汁。", "image": "https://via.placeholder.com/400x300?text=調醬汁", "timer": null },
+            { "number": 3, "text": "將豆芽與醬汁拌勻即可。", "image": "https://via.placeholder.com/400x300?text=拌豆芽", "timer": null }
+        ]
+    },
+    {
+        "name": "韭菜炒蛋",
+        "keyIngredients": ["韭菜", "雞蛋"],
+        "ingredients": ["韭菜", "雞蛋", "鹽", "食用油"],
+        "difficulty": "初級",
+        "time": "15分鐘",
+        "health": "家常",
+        "intro": "簡單美味的家常菜，韭菜的香氣與雞蛋的鮮嫩結合。",
+        "image": "https://via.placeholder.com/300x200?text=韭菜炒蛋",
+        "steps": [
+            { "number": 1, "text": "韭菜洗淨切段。雞蛋打散，加入少許鹽。", "image": "https://via.placeholder.com/400x300?text=準備韭菜雞蛋", "timer": null },
+            { "number": 2, "text": "鍋中放油燒熱，倒入蛋液炒熟盛出。", "image": "https://via.placeholder.com/400x300?text=炒蛋", "timer": null },
+            { "number": 3, "text": "鍋中再加少許油，放入韭菜段快速翻炒至斷生，倒入炒好的雞蛋，加鹽調味即可。", "image": "https://via.placeholder.com/400x300?text=炒韭菜蛋", "timer": null }
+        ]
+    },
+    {
+        "name": "苦瓜炒蛋",
+        "keyIngredients": ["苦瓜", "雞蛋"],
+        "ingredients": ["苦瓜", "雞蛋", "蒜", "鹽", "食用油"],
+        "difficulty": "初級",
+        "time": "15分鐘",
+        "health": "清熱解毒",
+        "intro": "清熱解毒的家常菜，苦瓜的清苦與雞蛋的滑嫩形成對比。",
+        "image": "https://via.placeholder.com/300x200?text=苦瓜炒蛋",
+        "steps": [
+            { "number": 1, "text": "苦瓜去籽切薄片，用鹽抓勻後靜置10分鐘出水，再沖洗乾淨減少苦味。雞蛋打散。", "image": "https://via.placeholder.com/400x300?text=處理苦瓜", "timer": "10分鐘" },
+            { "number": 2, "text": "鍋中放油，先炒熟雞蛋盛出。", "image": "https://via.placeholder.com/400x300?text=炒蛋", "timer": null },
+            { "number": 3, "text": "另起鍋，爆香蒜末，放入苦瓜片翻炒至斷生，加入炒好的雞蛋，加鹽調味即可。", "image": "https://via.placeholder.com/400x300?text=炒苦瓜蛋", "timer": null }
+        ]
+    },
+    {
+        "name": "苦瓜炒肉",
+        "keyIngredients": ["苦瓜", "豬肉"],
+        "ingredients": ["苦瓜", "豬肉", "蒜", "醬油", "食用油", "鹽"],
+        "difficulty": "中級",
+        "time": "20分鐘",
+        "health": "清熱解毒",
+        "intro": "苦瓜清脆，肉片鮮香，味道豐富。",
+        "image": "https://via.placeholder.com/300x200?text=苦瓜炒肉",
+        "steps": [
+            { "number": 1, "text": "苦瓜去籽切薄片，用鹽抓勻後靜置10分鐘出水，再沖洗乾淨。豬肉切片。", "image": "https://via.placeholder.com/400x300?text=處理苦瓜肉", "timer": "10分鐘" },
+            { "number": 2, "text": "鍋中放油，炒香肉片，加入蒜末、醬油炒香。", "image": "https://via.placeholder.com/400x300?text=炒肉", "timer": null },
+            { "number": 3, "text": "倒入苦瓜片翻炒，與肉片混合均勻，加鹽調味，炒至苦瓜斷生即可。", "image": "https://via.placeholder.com/400x300?text=炒苦瓜肉", "timer": null }
+        ]
+    },
+    {
+        "name": "蔥油拌麵",
+        "keyIngredients": ["麵條", "蔥", "醬油"],
+        "ingredients": ["麵條", "蔥", "醬油", "糖", "食用油", "香油"],
+        "difficulty": "初級",
+        "time": "15分鐘",
+        "health": "簡單主食",
+        "intro": "家常簡餐，蔥油的香氣與麵條的Q彈完美結合。",
+        "image": "https://via.placeholder.com/300x200?text=蔥油拌麵",
+        "steps": [
+            { "number": 1, "text": "細蔥切成蔥花。麵條煮熟後撈出，用少量香油拌勻防止粘連。", "image": "https://via.placeholder.com/400x300?text=準備麵條蔥花", "timer": "8分鐘" },
+            { "number": 2, "text": "鍋中放入較多食用油，小火炸蔥花至金黃酥脆，撈出蔥渣。", "image": "https://via.placeholder.com/400x300?text=炸蔥油", "timer": "5分鐘" },
+            { "number": 3, "text": "在碗中放入醬油、少許糖，倒入熱蔥油拌勻，再加入麵條和炸好的蔥花，拌勻即可。", "image": "https://via.placeholder.com/400x300?text=拌麵", "timer": null }
+        ]
+    },
+    {
+        "name": "香菇滑雞",
+        "keyIngredients": ["雞腿肉", "香菇", "薑", "蔥"],
+        "ingredients": ["雞腿肉", "香菇", "薑", "蔥", "蠔油", "生抽", "麻油", "澱粉", "食用油", "水"],
+        "difficulty": "中級",
+        "time": "30分鐘",
+        "health": "鮮美可口",
+        "intro": "雞肉滑嫩，香菇鮮香，家常下飯菜。",
+        "image": "https://via.placeholder.com/300x200?text=香菇滑雞",
+        "steps": [
+            { "number": 1, "text": "雞腿肉切塊，用生抽、麻油、澱粉醃製15分鐘。香菇泡軟切片，薑切片，蔥切段。", "image": "https://via.placeholder.com/400x300?text=準備滑雞食材", "timer": "15分鐘" },
+            { "number": 2, "text": "鍋中放油燒熱，爆香薑片和蔥段，放入雞肉炒至變色。", "image": "https://via.placeholder.com/400x300?text=炒雞肉", "timer": null },
+            { "number": 3, "text": "加入香菇片翻炒，倒入蠔油和適量水，煮至雞肉熟透，勾芡即可。", "image": "https://via.placeholder.com/400x300?text=煮滑雞", "timer": null }
+        ]
+    },
+    {
+        "name": "青椒炒肉絲",
+        "keyIngredients": ["豬肉", "青椒"],
+        "ingredients": ["豬肉", "青椒", "醬油", "澱粉", "蒜", "食用油", "鹽"],
+        "difficulty": "中級",
+        "time": "20分鐘",
+        "health": "家常",
+        "intro": "簡單快速的家常小炒，青椒清脆，肉絲入味。",
+        "image": "https://via.placeholder.com/300x200?text=青椒炒肉絲",
+        "steps": [
+            { "number": 1, "text": "豬肉切絲，用醬油、澱粉醃製。青椒切絲，蒜切末。", "image": "https://via.placeholder.com/400x300?text=準備肉絲青椒", "timer": null },
+            { "number": 2, "text": "鍋中放油燒熱，放入肉絲炒至變色盛出。", "image": "https://via.placeholder.com/400x300?text=炒肉絲", "timer": null },
+            { "number": 3, "text": "另起鍋，爆香蒜末，放入青椒絲翻炒至斷生，倒入肉絲，加鹽調味，快速翻炒均勻即可。", "image": "https://via.placeholder.com/400x300?text=炒青椒肉絲", "timer": null }
+        ]
+    },
+    {
+        "name": "清蒸鱸魚",
+        "keyIngredients": ["鱸魚", "薑", "蔥"],
+        "ingredients": ["鱸魚", "薑", "蔥", "蒸魚豉油", "食用油", "料酒", "鹽"],
+        "difficulty": "中級",
+        "time": "25分鐘",
+        "health": "高蛋白、低脂",
+        "intro": "經典粵菜做法，最大程度保留魚肉的鮮甜和營養。",
+        "image": "https://via.placeholder.com/300x200?text=清蒸鱸魚",
+        "steps": [
+            { "number": 1, "text": "鱸魚處理乾淨，兩面斜刀劃幾刀，用鹽和料酒醃製10分鐘。薑切片、蔥切段和薑絲。", "image": "https://via.placeholder.com/400x300?text=準備鱸魚", "timer": "10分鐘" },
+            { "number": 2, "text": "盤底鋪上薑片和蔥段，放上鱸魚，魚身也放些薑片和蔥段。水開後放入蒸鍋，大火蒸8-10分鐘。", "image": "https://via.placeholder.com/400x300?text=蒸魚", "timer": "10分鐘" },
+            { "number": 3, "text": "取出蒸好的魚，倒掉盤中水分，淋上蒸魚豉油，鋪上新鮮薑絲和蔥絲。", "image": "https://via.placeholder.com/400x300?text=淋蒸魚豉油", "timer": null },
+            { "number": 4, "text": "另起鍋燒熱適量食用油，淋在薑絲和蔥絲上，激發香味即可。", "image": "https://via.placeholder.com/400x300?text=淋熱油", "timer": null }
+        ]
+    },
+    {
+        "name": "燜大蝦",
+        "keyIngredients": ["大蝦", "蔥", "薑"],
+        "ingredients": ["大蝦", "蔥", "薑", "番茄醬", "白糖", "料酒", "生抽", "食用油", "鹽"],
+        "difficulty": "中級",
+        "time": "25分鐘",
+        "health": "鮮美",
+        "intro": "色澤紅亮，味道鮮甜的家常菜。",
+        "image": "https://via.placeholder.com/300x200?text=燜大蝦",
+        "steps": [
+            { "number": 1, "text": "大蝦去蝦線，洗淨瀝乾。蔥薑切片。", "image": "https://via.placeholder.com/400x300?text=處理大蝦", "timer": null },
+            { "number": 2, "text": "鍋中放油燒熱，放入大蝦煎至變色，盛出。", "image": "https://via.placeholder.com/400x300?text=煎蝦", "timer": null },
+            { "number": 3, "text": "留底油，爆香蔥薑，加入番茄醬炒香，倒入大蝦，加料酒、生抽、糖和少量水，燜煮至湯汁濃稠即可。", "image": "https://via.placeholder.com/400x300?text=燜煮", "timer": "10分鐘" }
+        ]
+    },
+    {
+        "name": "鍋燒雞",
+        "keyIngredients": ["雞肉", "醬油", "白糖"],
+        "ingredients": ["雞肉", "醬油", "白糖", "料酒", "蔥", "薑", "八角", "桂皮", "食用油", "水"],
+        "difficulty": "中級",
+        "time": "40分鐘",
+        "health": "滋補",
+        "intro": "肉質軟爛，鹹甜適口，醬香濃郁的家常燉雞。",
+        "image": "https://via.placeholder.com/300x200?text=鍋燒雞",
+        "steps": [
+            { "number": 1, "text": "雞肉斬塊洗淨，焯水備用。蔥薑切片。", "image": "https://via.placeholder.com/400x300?text=準備雞肉", "timer": null },
+            { "number": 2, "text": "鍋中放油，炒香蔥薑八角桂皮，放入雞塊翻炒。", "image": "https://via.placeholder.com/400x300?text=炒雞塊", "timer": null },
+            { "number": 3, "text": "加入料酒、醬油、白糖、足量水，大火煮開轉小火慢燉至雞肉軟爛入味即可。", "image": "https://via.placeholder.com/400x300?text=燉雞", "timer": "30分鐘" }
+        ]
+    },
+    {
+        "name": "山東菜丸",
+        "keyIngredients": ["豆腐", "白菜", "麵粉"],
+        "ingredients": ["豆腐", "白菜", "麵粉", "雞蛋", "蔥", "薑", "鹽", "五香粉", "食用油"],
+        "difficulty": "中級",
+        "time": "30分鐘",
+        "health": "素食",
+        "intro": "外酥內軟，清香可口的傳統素食丸子。",
+        "image": "https://via.placeholder.com/300x200?text=山東菜丸",
+        "steps": [
+            { "number": 1, "text": "豆腐壓碎，白菜切末擠乾水分。蔥薑切末。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "將豆腐、白菜末、蔥薑末、雞蛋、麵粉、鹽、五香粉混合均勻，搓成丸子。", "image": "https://via.placeholder.com/400x300?text=搓丸子", "timer": null },
+            { "number": 3, "text": "鍋中燒油至七成熱，放入丸子炸至金黃酥脆即可。", "image": "https://via.placeholder.com/400x300?text=炸丸子", "timer": "10分鐘" }
+        ]
+    },
+    {
+        "name": "辣子雞丁",
+        "keyIngredients": ["雞肉", "乾辣椒", "花椒"],
+        "ingredients": ["雞肉", "乾辣椒", "花椒", "薑", "蒜", "蔥", "料酒", "生抽", "白糖", "澱粉", "食用油", "鹽"],
+        "difficulty": "高級",
+        "time": "35分鐘",
+        "health": "麻辣開胃",
+        "intro": "川菜經典，麻辣鮮香，雞肉外酥裡嫩。",
+        "image": "https://via.placeholder.com/300x200?text=辣子雞丁",
+        "steps": [
+            { "number": 1, "text": "雞腿肉切丁，用料酒、生抽、鹽、澱粉醃製。乾辣椒剪段，花椒備用。薑蒜切片，蔥切段。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": "15分鐘" },
+            { "number": 2, "text": "鍋中油燒至六成熱，放入雞丁炸至金黃酥脆撈出。", "image": "https://via.placeholder.com/400x300?text=炸雞丁", "timer": "5分鐘" },
+            { "number": 3, "text": "鍋中留底油，放入乾辣椒、花椒、薑蒜爆香，倒入炸好的雞丁，快速翻炒，加少許糖調味，撒上蔥段即可。", "image": "https://via.placeholder.com/400x300?text=炒雞丁", "timer": null }
+        ]
+    },
+    {
+        "name": "東坡肘子",
+        "keyIngredients": ["豬肘", "冰糖", "醬油"],
+        "ingredients": ["豬肘", "冰糖", "醬油", "料酒", "蔥", "薑", "八角", "桂皮", "香葉", "鹽", "食用油", "水"],
+        "difficulty": "高級",
+        "time": "180分鐘",
+        "health": "滋補膠原蛋白",
+        "intro": "軟糯香醇，肥而不膩，川菜經典名菜。",
+        "image": "https://via.placeholder.com/300x200?text=東坡肘子",
+        "steps": [
+            { "number": 1, "text": "豬肘焯水洗淨，瀝乾水分。", "image": "https://via.placeholder.com/400x300?text=處理豬肘", "timer": null },
+            { "number": 2, "text": "鍋中放少許油，炒冰糖至融化變色，放入豬肘上色。", "image": "https://via.placeholder.com/400x300?text=炒糖色", "timer": null },
+            { "number": 3, "text": "加入蔥薑、八角桂皮香葉、料酒、醬油、足量水，大火燒開轉小火慢燉至少2-3小時，至豬肘軟爛入味。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "180分鐘" }
+        ]
+    },
+    {
+        "name": "豆瓣鯽魚",
+        "keyIngredients": ["鯽魚", "豆瓣醬", "蔥", "薑"],
+        "ingredients": ["鯽魚", "豆瓣醬", "蔥", "薑", "蒜", "料酒", "生抽", "醋", "白糖", "食用油", "水", "澱粉"],
+        "difficulty": "中級",
+        "time": "30分鐘",
+        "health": "鮮美",
+        "intro": "魚肉鮮嫩，豆瓣醬香濃郁，風味獨特。",
+        "image": "https://via.placeholder.com/300x200?text=豆瓣鯽魚",
+        "steps": [
+            { "number": 1, "text": "鯽魚處理乾淨，兩面劃刀，用料酒和鹽醃製。蔥薑蒜切末。", "image": "https://via.placeholder.com/400x300?text=準備鯽魚", "timer": "10分鐘" },
+            { "number": 2, "text": "鍋中放油，將鯽魚兩面煎至金黃。", "image": "https://via.placeholder.com/400x300?text=煎魚", "timer": null },
+            { "number": 3, "text": "加入豆瓣醬炒香，放入蔥薑蒜末，倒入適量水，加生抽、醋、白糖煮開，放入鯽魚，小火燒至入味，勾芡即可。", "image": "https://via.placeholder.com/400x300?text=燒魚", "timer": "15分鐘" }
+        ]
+    },
+    {
+        "name": "口袋豆腐",
+        "keyIngredients": ["豆腐", "豬肉", "高湯"],
+        "ingredients": ["豆腐", "豬肉", "高湯", "香菇", "胡蘿蔔", "豌豆", "澱粉", "食用油", "鹽", "麻油"],
+        "difficulty": "高級",
+        "time": "40分鐘",
+        "health": "清淡鮮美",
+        "intro": "豆腐形似口袋，內餡豐富，口感細膩。",
+        "image": "https://via.placeholder.com/300x200?text=口袋豆腐",
+        "steps": [
+            { "number": 1, "text": "豆腐切大片，中間挖空。豬肉、香菇、胡蘿蔔切丁，與豌豆混合，用鹽、麻油、澱粉調味做成內餡。", "image": "https://via.placeholder.com/400x300?text=準備內餡", "timer": null },
+            { "number": 2, "text": "將內餡填入豆腐中，擺入盤中。", "image": "https://via.placeholder.com/400x300?text=填豆腐", "timer": null },
+            { "number": 3, "text": "蒸鍋水開後放入豆腐蒸10-15分鐘。", "image": "https://via.placeholder.com/400x300?text=蒸豆腐", "timer": "15分鐘" },
+            { "number": 4, "text": "另起鍋，用高湯勾芡，淋在蒸好的豆腐上即可。", "image": "https://via.placeholder.com/400x300?text=勾芡", "timer": null }
+        ]
+    },
+    {
+        "name": "酸菜魚",
+        "keyIngredients": ["魚片", "酸菜", "辣椒", "花椒"],
+        "ingredients": ["魚片", "酸菜", "辣椒", "花椒", "薑", "蒜", "食用油", "蛋清", "澱粉", "鹽", "雞精", "高湯"],
+        "difficulty": "高級",
+        "time": "40分鐘",
+        "health": "酸辣開胃",
+        "intro": "湯汁酸辣可口，魚肉滑嫩，風味十足。",
+        "image": "https://via.placeholder.com/300x200?text=酸菜魚",
+        "steps": [
+            { "number": 1, "text": "魚片用鹽、料酒、蛋清、澱粉醃製。酸菜切段。辣椒切段，花椒備用。薑蒜切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": "15分鐘" },
+            { "number": 2, "text": "鍋中放油，炒香薑蒜、辣椒、花椒和酸菜。", "image": "https://via.placeholder.com/400x300?text=炒酸菜", "timer": null },
+            { "number": 3, "text": "加入高湯煮開，放入魚片煮熟，加鹽和雞精調味。", "image": "https://via.placeholder.com/400x300?text=煮魚片", "timer": null },
+            { "number": 4, "text": "將魚片和湯盛出，另起鍋燒熱油，淋在魚片上，撒上蔥花即可。", "image": "https://via.placeholder.com/400x300?text=淋熱油", "timer": null }
+        ]
+    },
+    {
+        "name": "夫妻肺片",
+        "keyIngredients": ["牛腱", "牛肚", "牛舌", "辣椒油", "花椒油"],
+        "ingredients": ["牛腱", "牛肚", "牛舌", "花生米", "香菜", "滷水", "辣椒油", "花椒油", "生抽", "醋", "白糖", "雞精", "芝麻醬"],
+        "difficulty": "高級",
+        "time": "120分鐘",
+        "health": "開胃涼菜",
+        "intro": "麻辣鮮香，口感豐富，四川經典涼菜。",
+        "image": "https://via.placeholder.com/300x200?text=夫妻肺片",
+        "steps": [
+            { "number": 1, "text": "牛腱、牛肚、牛舌滷熟後切片。花生米炸酥或烤酥。香菜切段。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": "90分鐘" },
+            { "number": 2, "text": "將所有調料混合成醬汁。", "image": "https://via.placeholder.com/400x300?text=調醬汁", "timer": null },
+            { "number": 3, "text": "將切好的滷肉片放入大碗中，淋上醬汁，撒上花生米和香菜即可。", "image": "https://via.placeholder.com/400x300?text=拌勻", "timer": null }
+        ]
+    },
+    {
+        "name": "螞蟻上樹",
+        "keyIngredients": ["粉絲", "豬肉末", "豆瓣醬"],
+        "ingredients": ["粉絲", "豬肉末", "豆瓣醬", "蔥", "薑", "蒜", "生抽", "老抽", "白糖", "食用油", "高湯", "麻油"],
+        "difficulty": "中級",
+        "time": "25分鐘",
+        "health": "下飯",
+        "intro": "粉絲軟滑，肉末香濃，形似螞蟻爬樹，故名。",
+        "image": "https://via.placeholder.com/300x200?text=螞蟻上樹",
+        "steps": [
+            { "number": 1, "text": "粉絲用溫水泡軟。豬肉末備用。蔥薑蒜切末。", "image": "https://via.placeholder.com/400x300?text=準備粉絲肉末", "timer": null },
+            { "number": 2, "text": "鍋中放油，炒香蔥薑蒜，放入豬肉末炒散。", "image": "https://via.placeholder.com/400x300?text=炒肉末", "timer": null },
+            { "number": 3, "text": "加入豆瓣醬炒香，倒入高湯，放入泡軟的粉絲，加生抽、老抽、白糖調味，煮至粉絲入味，淋上麻油即可。", "image": "https://via.placeholder.com/400x300?text=煮粉絲", "timer": "10分鐘" }
+        ]
+    },
+    {
+        "name": "叫花雞",
+        "keyIngredients": ["整雞", "荷葉", "泥土"],
+        "ingredients": ["整雞", "荷葉", "泥土", "蔥", "薑", "料酒", "生抽", "蠔油", "蜂蜜", "食用油", "香菇", "火腿", "豬肉"],
+        "difficulty": "特級",
+        "time": "240分鐘",
+        "health": "滋補",
+        "intro": "傳說中的美味，雞肉鮮嫩多汁，獨特泥烤風味。",
+        "image": "https://via.placeholder.com/300x200?text=叫花雞",
+        "steps": [
+            { "number": 1, "text": "整雞洗淨瀝乾，用料酒、生抽、蠔油、蜂蜜等醃製，腹中塞入香菇、火腿、豬肉丁。", "image": "https://via.placeholder.com/400x300?text=醃製整雞", "timer": "60分鐘" },
+            { "number": 2, "text": "用荷葉將雞包裹嚴實，再用和好的泥土將荷葉雞裹住。", "image": "https://via.placeholder.com/400x300?text=裹泥土", "timer": null },
+            { "number": 3, "text": "放入烤箱或爐火中慢烤3-4小時，直至泥土堅硬，敲開即可享用。", "image": "https://via.placeholder.com/400x300?text=烤雞", "timer": "240分鐘" }
+        ]
+    },
+    {
+        "name": "魚香肉絲",
+        "keyIngredients": ["豬肉", "木耳", "青椒", "胡蘿蔔"],
+        "ingredients": ["豬肉", "木耳", "青椒", "胡蘿蔔", "薑", "蒜", "泡椒", "料酒", "生抽", "醋", "白糖", "澱粉", "食用油"],
+        "difficulty": "中級",
+        "time": "25分鐘",
+        "health": "下飯",
+        "intro": "酸甜微辣，肉絲滑嫩，川菜家常名菜。",
+        "image": "https://via.placeholder.com/300x200?text=魚香肉絲",
+        "steps": [
+            { "number": 1, "text": "豬肉、木耳、青椒、胡蘿蔔切絲。肉絲用料酒、澱粉醃製。薑蒜切末，泡椒剁碎。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": "10分鐘" },
+            { "number": 2, "text": "碗中調魚香汁：生抽、醋、白糖、澱粉、少許水混合。", "image": "https://via.placeholder.com/400x300?text=調魚香汁", "timer": null },
+            { "number": 3, "text": "鍋中放油，炒肉絲至變色盛出。", "image": "https://via.placeholder.com/400x300?text=炒肉絲", "timer": null },
+            { "number": 4, "text": "留底油，爆香薑蒜泡椒，放入木耳、青椒、胡蘿蔔絲翻炒，倒入肉絲，倒入魚香汁快速翻炒均勻即可。", "image": "https://via.placeholder.com/400x300?text=炒魚香肉絲", "timer": null }
+        ]
+    },
+    {
+        "name": "咸菜燜豬肉",
+        "keyIngredients": ["鹹菜", "豬肉"],
+        "ingredients": ["鹹菜", "豬肉", "薑", "蒜", "料酒", "生抽", "食用油", "水"],
+        "difficulty": "初級",
+        "time": "30分鐘",
+        "health": "家常",
+        "intro": "鹹香下飯，豬肉軟爛，簡單美味。",
+        "image": "https://via.placeholder.com/300x200?text=咸菜燜豬肉",
+        "steps": [
+            { "number": 1, "text": "鹹菜洗淨切段。豬肉切塊或片。薑蒜切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "鍋中放油，放入豬肉炒香至變色。", "image": "https://via.placeholder.com/400x300?text=炒豬肉", "timer": null },
+            { "number": 3, "text": "加入薑蒜、鹹菜翻炒，加料酒、生抽和適量水，燜煮至豬肉軟爛入味即可。", "image": "https://via.placeholder.com/400x300?text=燜煮", "timer": "20分鐘" }
+        ]
+    },
+    {
+        "name": "釀茄子",
+        "keyIngredients": ["茄子", "豬肉餡"],
+        "ingredients": ["茄子", "豬肉餡", "蔥", "薑", "生抽", "麻油", "澱粉", "食用油", "高湯"],
+        "difficulty": "中級",
+        "time": "35分鐘",
+        "health": "鮮美",
+        "intro": "茄子軟糯，肉餡鮮香，經典客家菜。",
+        "image": "https://via.placeholder.com/300x200?text=釀茄子",
+        "steps": [
+            { "number": 1, "text": "茄子切段，中間劃開不切斷。豬肉餡加蔥薑末、生抽、麻油、澱粉調味。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "將肉餡釀入茄子中。", "image": "https://via.placeholder.com/400x300?text=釀餡", "timer": null },
+            { "number": 3, "text": "鍋中放油，將釀好的茄子兩面煎至金黃。", "image": "https://via.placeholder.com/400x300?text=煎釀茄子", "timer": null },
+            { "number": 4, "text": "加入高湯，小火燜煮至茄子軟爛入味，勾芡即可。", "image": "https://via.placeholder.com/400x300?text=燜煮", "timer": "20分鐘" }
+        ]
+    },
+    {
+        "name": "釀豆腐",
+        "keyIngredients": ["豆腐", "豬肉餡"],
+        "ingredients": ["豆腐", "豬肉餡", "香菇", "蔥", "薑", "生抽", "麻油", "澱粉", "食用油", "高湯"],
+        "difficulty": "中級",
+        "time": "35分鐘",
+        "health": "鮮美",
+        "intro": "豆腐滑嫩，肉餡鮮香，經典客家菜。",
+        "image": "https://via.placeholder.com/300x200?text=釀豆腐",
+        "steps": [
+            { "number": 1, "text": "豆腐切塊，中間挖空。豬肉餡加香菇末、蔥薑末、生抽、麻油、澱粉調味。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "將肉餡填入豆腐中。", "image": "https://via.placeholder.com/400x300?text=釀餡", "timer": null },
+            { "number": 3, "text": "鍋中放油，將釀好的豆腐兩面煎至金黃。", "image": "https://via.placeholder.com/400x300?text=煎釀豆腐", "timer": null },
+            { "number": 4, "text": "加入高湯，小火燜煮至豆腐入味，勾芡即可。", "image": "https://via.placeholder.com/400x300?text=燜煮", "timer": "20分鐘" }
+        ]
+    },
+    {
+        "name": "梅菜扣肉",
+        "keyIngredients": ["五花肉", "梅菜"],
+        "ingredients": ["五花肉", "梅菜", "薑", "蔥", "料酒", "老抽", "生抽", "蠔油", "白糖", "食用油", "八角", "桂皮"],
+        "difficulty": "高級",
+        "time": "180分鐘",
+        "health": "鹹香下飯",
+        "intro": "肥而不膩，梅菜吸飽肉汁，風味濃郁。",
+        "image": "https://via.placeholder.com/300x200?text=梅菜扣肉",
+        "steps": [
+            { "number": 1, "text": "五花肉焯水後炸至表皮金黃，切片。梅菜泡軟洗淨切段。", "image": "https://via.placeholder.com/400x300?text=處理肉梅菜", "timer": "30分鐘" },
+            { "number": 2, "text": "將肉片和梅菜用醬油、蠔油、白糖等調味，交錯擺入碗中，上鍋蒸2-3小時。", "image": "https://via.placeholder.com/400x300?text=擺碗蒸肉", "timer": "120分鐘" },
+            { "number": 3, "text": "取出倒扣在盤中，淋上蒸肉汁即可。", "image": "https://via.placeholder.com/400x300?text=扣肉", "timer": null }
+        ]
+    },
+    {
+        "name": "客家鹽焗雞",
+        "keyIngredients": ["整雞", "粗鹽"],
+        "ingredients": ["整雞", "粗鹽", "沙薑粉", "五香粉", "麻油", "食用油", "蔥", "薑"],
+        "difficulty": "中級",
+        "time": "90分鐘",
+        "health": "皮滑肉嫩",
+        "intro": "皮脆肉滑，鹹香入味，客家傳統名菜。",
+        "image": "https://via.placeholder.com/300x200?text=客家鹽焗雞",
+        "steps": [
+            { "number": 1, "text": "整雞洗淨瀝乾，內外塗抹沙薑粉、五香粉、鹽、麻油醃製。", "image": "https://via.placeholder.com/400x300?text=醃製整雞", "timer": "30分鐘" },
+            { "number": 2, "text": "粗鹽炒熱，將雞埋入熱鹽中，用鑄鐵鍋或瓦煲小火焗烤約60分鐘。", "image": "https://via.placeholder.com/400x300?text=鹽焗", "timer": "60分鐘" },
+            { "number": 3, "text": "取出撥開粗鹽，將雞斬件即可。", "image": "https://via.placeholder.com/400x300?text=斬雞", "timer": null }
+        ]
+    },
+    {
+        "name": "廣式燒填鴨",
+        "keyIngredients": ["填鴨", "麥芽糖", "白醋"],
+        "ingredients": ["填鴨", "麥芽糖", "白醋", "料酒", "五香粉", "薑", "蔥", "食用油", "醬油"],
+        "difficulty": "特級",
+        "time": "240分鐘",
+        "health": "皮脆肉香",
+        "intro": "皮脆肉嫩，色澤紅亮，廣東傳統名菜。",
+        "image": "https://via.placeholder.com/300x200?text=廣式燒填鴨",
+        "steps": [
+            { "number": 1, "text": "填鴨處理乾淨，內外塗抹料酒、五香粉等調料，用麥芽糖和白醋的混合液淋遍鴨皮。", "image": "https://via.placeholder.com/400x300?text=處理鴨皮", "timer": "60分鐘" },
+            { "number": 2, "text": "將鴨吊起風乾數小時。", "image": "https://via.placeholder.com/400x300?text=風乾", "timer": "120分鐘" },
+            { "number": 3, "text": "放入烤箱或專用烤爐中，高溫烤製至鴨皮酥脆，肉熟即可。", "image": "https://via.placeholder.com/400x300?text=燒烤", "timer": "60分鐘" }
+        ]
+    },
+    {
+        "name": "燒鵝",
+        "keyIngredients": ["鵝", "麥芽糖", "白醋"],
+        "ingredients": ["鵝", "麥芽糖", "白醋", "五香粉", "薑", "蔥", "食用油", "醬油", "八角", "桂皮"],
+        "difficulty": "特級",
+        "time": "240分鐘",
+        "health": "皮脆肉嫩",
+        "intro": "皮脆肉嫩，汁多味美，香港燒臘代表。",
+        "image": "https://via.placeholder.com/300x200?text=燒鵝",
+        "steps": [
+            { "number": 1, "text": "鵝處理乾淨，內外塗抹五香粉、鹽等調料，用麥芽糖和白醋的混合液淋遍鵝皮。", "image": "https://via.placeholder.com/400x300?text=處理鵝皮", "timer": "60分鐘" },
+            { "number": 2, "text": "將鵝吊起風乾數小時。", "image": "https://via.placeholder.com/400x300?text=風乾", "timer": "120分鐘" },
+            { "number": 3, "text": "放入烤箱或專用烤爐中，高溫烤製至鵝皮酥脆，肉熟即可。", "image": "https://via.placeholder.com/400x300?text=燒烤", "timer": "60分鐘" }
+        ]
+    },
+    {
+        "name": "紅槽排骨",
+        "keyIngredients": ["排骨", "紅糟"],
+        "ingredients": ["排骨", "紅糟", "薑", "蒜", "料酒", "生抽", "白糖", "食用油", "地瓜粉"],
+        "difficulty": "中級",
+        "time": "60分鐘",
+        "health": "風味獨特",
+        "intro": "色澤紅艷，酒香濃郁，排骨酥香。",
+        "image": "https://via.placeholder.com/300x200?text=紅槽排骨",
+        "steps": [
+            { "number": 1, "text": "排骨斬塊，洗淨焯水。紅糟加薑蒜、料酒、生抽、糖調成醃料。", "image": "https://via.placeholder.com/400x300?text=準備排骨紅糟", "timer": null },
+            { "number": 2, "text": "排骨與醃料混合醃製30分鐘。", "image": "https://via.placeholder.com/400x300?text=醃製", "timer": "30分鐘" },
+            { "number": 3, "text": "排骨裹上薄薄的地瓜粉，放入油鍋中炸至金黃酥脆即可。", "image": "https://via.placeholder.com/400x300?text=炸排骨", "timer": "15分鐘" }
+        ]
+    },
+    {
+        "name": "豆豉蒸排骨",
+        "keyIngredients": ["排骨", "豆豉"],
+        "ingredients": ["排骨", "豆豉", "蒜", "紅椒", "生抽", "蠔油", "澱粉", "食用油", "白糖"],
+        "difficulty": "初級",
+        "time": "30分鐘",
+        "health": "鮮香軟糯",
+        "intro": "豉味濃郁，排骨軟糯，經典粵式點心。",
+        "image": "https://via.placeholder.com/300x200?text=豆豉蒸排骨",
+        "steps": [
+            { "number": 1, "text": "排骨斬小塊，洗淨。豆豉、蒜、紅椒切碎。", "image": "https://via.placeholder.com/400x300?text=準備排骨豆豉", "timer": null },
+            { "number": 2, "text": "排骨與豆豉、蒜、紅椒碎、生抽、蠔油、白糖、澱粉、食用油混合醃製15分鐘。", "image": "https://via.placeholder.com/400x300?text=醃製", "timer": "15分鐘" },
+            { "number": 3, "text": "放入蒸鍋中，大火蒸20分鐘至排骨熟透即可。", "image": "https://via.placeholder.com/400x300?text=蒸排骨", "timer": "20分鐘" }
+        ]
+    },
+    {
+        "name": "煎釀三寶",
+        "keyIngredients": ["青椒", "茄子", "豆腐", "魚肉餡"],
+        "ingredients": ["青椒", "茄子", "豆腐", "魚肉餡", "蔥", "薑", "生抽", "麻油", "澱粉", "食用油"],
+        "difficulty": "中級",
+        "time": "40分鐘",
+        "health": "多樣化",
+        "intro": "香港特色小吃，口感豐富，外酥裡嫩。",
+        "image": "https://via.placeholder.com/300x200?text=煎釀三寶",
+        "steps": [
+            { "number": 1, "text": "青椒、茄子、豆腐切塊，中間劃開或挖空。魚肉餡加蔥薑末、生抽、麻油、澱粉調味。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "將魚肉餡釀入青椒、茄子、豆腐中。", "image": "https://via.placeholder.com/400x300?text=釀餡", "timer": null },
+            { "number": 3, "text": "鍋中放油，將釀好的三寶兩面煎至金黃，煎熟即可。", "image": "https://via.placeholder.com/400x300?text=煎三寶", "timer": "20分鐘" }
+        ]
+    },
+    {
+        "name": "佛跳牆",
+        "keyIngredients": ["鮑魚", "海參", "魚翅", "花膠", "雞肉", "排骨", "香菇"],
+        "ingredients": ["鮑魚", "海參", "魚翅", "花膠", "雞肉", "排骨", "香菇", "竹筍", "豬肚", "鴨肉", "瑤柱", "高湯", "料酒", "鹽", "白糖"],
+        "difficulty": "特級", 
+        "time": "480分鐘", 
+        "health": "滋補豪華", 
+        "intro": "閩菜之首，匯集山珍海味，湯汁濃郁，營養豐富。", 
+        "image": "https://via.placeholder.com/300x200?text=佛跳牆",
+        "steps": [
+            { "number": 1, "text": "各種海鮮乾貨提前泡發處理好。雞肉、排骨、豬肚、鴨肉等肉類焯水備用。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": "240分鐘" },
+            { "number": 2, "text": "將所有食材放入大瓦罈中，加入足量高湯，料酒、鹽、糖調味。", "image": "https://via.placeholder.com/400x300?text=裝罈", "timer": null },
+            { "number": 3, "text": "用荷葉封口，文火慢燉至少4-6小時，直至食材軟爛，湯汁濃稠即可。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "360分鐘" }
+        ]
+    },
+    {
+        "name": "醉排骨",
+        "keyIngredients": ["排骨", "紅糟", "酒"],
+        "ingredients": ["排骨", "紅糟", "酒", "白糖", "醋", "蒜", "薑", "食用油", "澱粉"],
+        "difficulty": "中級", 
+        "time": "60分鐘", 
+        "health": "酸甜開胃", 
+        "intro": "酸甜酥香，酒香濃郁，福州傳統名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=醉排骨",
+        "steps": [
+            { "number": 1, "text": "排骨斬塊，洗淨焯水。", "image": "https://via.placeholder.com/400x300?text=處理排骨", "timer": null },
+            { "number": 2, "text": "排骨用紅糟、酒、蒜、薑、鹽醃製30分鐘。", "image": "https://via.placeholder.com/400x300?text=醃製", "timer": "30分鐘" },
+            { "number": 3, "text": "排骨裹上薄薄的澱粉，炸至金黃酥脆。", "image": "https://via.placeholder.com/400x300?text=炸排骨", "timer": "10分鐘" },
+            { "number": 4, "text": "另起鍋，用白糖、醋、少許水煮成糖醋汁，倒入炸好的排骨，快速翻炒均勻即可。", "image": "https://via.placeholder.com/400x300?text=淋汁", "timer": null }
+        ]
+    },
+    {
+        "name": "荔枝肉",
+        "keyIngredients": ["豬肉", "馬蹄", "番茄醬"],
+        "ingredients": ["豬肉", "馬蹄", "番茄醬", "白糖", "醋", "澱粉", "食用油", "鹽"],
+        "difficulty": "中級", 
+        "time": "30分鐘", 
+        "health": "酸甜開胃", 
+        "intro": "形似荔枝，酸甜可口，福州特色菜。", 
+        "image": "https://via.placeholder.com/300x200?text=荔枝肉",
+        "steps": [
+            { "number": 1, "text": "豬肉切塊，用澱粉、鹽醃製，炸至金黃。馬蹄切塊。", "image": "https://via.placeholder.com/400x300?text=處理肉馬蹄", "timer": null },
+            { "number": 2, "text": "鍋中放油，加入番茄醬、白糖、醋、少許水煮成酸甜汁。", "image": "https://via.placeholder.com/400x300?text=調汁", "timer": null },
+            { "number": 3, "text": "倒入炸好的肉塊和馬蹄，快速翻炒均勻，讓肉塊裹滿醬汁即可。", "image": "https://via.placeholder.com/400x300?text=炒肉", "timer": null }
+        ]
+    },
+    {
+        "name": "扳指干貝",
+        "keyIngredients": ["干貝", "鮮蝦", "豬肉"],
+        "ingredients": ["干貝", "鮮蝦", "豬肉", "雞蛋", "香菇", "胡蘿蔔", "澱粉", "鹽", "麻油", "高湯"],
+        "difficulty": "高級", 
+        "time": "60分鐘", 
+        "health": "鮮美", 
+        "intro": "造型精緻，鮮味十足，閩菜經典。", 
+        "image": "https://via.placeholder.com/300x200?text=扳指干貝",
+        "steps": [
+            { "number": 1, "text": "干貝泡軟，鮮蝦、豬肉剁成泥，加雞蛋、香菇末、胡蘿蔔丁、澱粉、鹽、麻油調味成餡。", "image": "https://via.placeholder.com/400x300?text=準備餡料", "timer": null },
+            { "number": 2, "text": "將餡料裹在干貝上，蒸熟。", "image": "https://via.placeholder.com/400x300?text=蒸制", "timer": "20分鐘" },
+            { "number": 3, "text": "用高湯勾芡，淋在蒸好的扳指干貝上即可。", "image": "https://via.placeholder.com/400x300?text=勾芡", "timer": null }
+        ]
+    },
+    {
+        "name": "尤溪卜鴨",
+        "keyIngredients": ["鴨肉", "糯米", "香菇"],
+        "ingredients": ["鴨肉", "糯米", "香菇", "紅蔥頭", "花生米", "醬油", "料酒", "五香粉", "食用油", "水"],
+        "difficulty": "特級", 
+        "time": "180分鐘", 
+        "health": "香糯滋補", 
+        "intro": "鴨肉軟爛，糯米香糯，尤溪特色名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=尤溪卜鴨",
+        "steps": [
+            { "number": 1, "text": "鴨肉焯水。糯米、香菇泡軟，與紅蔥頭、花生米等炒香做成內餡。", "image": "https://via.placeholder.com/400x300?text=準備內餡", "timer": null },
+            { "number": 2, "text": "將內餡塞入鴨腹中，用線縫好。", "image": "https://via.placeholder.com/400x300?text=填鴨", "timer": null },
+            { "number": 3, "text": "鴨身塗抹醬油，煎至金黃後，加水、醬油、料酒、五香粉，燜煮至鴨肉軟爛即可。", "image": "https://via.placeholder.com/400x300?text=燜煮", "timer": "120分鐘" }
+        ]
+    },
+    {
+        "name": "七星魚丸湯",
+        "keyIngredients": ["魚肉", "澱粉"],
+        "ingredients": ["魚肉", "澱粉", "蔥", "薑", "鹽", "胡椒粉", "高湯", "香菜"],
+        "difficulty": "中級", 
+        "time": "30分鐘", 
+        "health": "清淡鮮美", 
+        "intro": "魚丸 Q 彈，湯汁清甜，閩菜湯品。", 
+        "image": "https://via.placeholder.com/300x200?text=七星魚丸湯",
+        "steps": [
+            { "number": 1, "text": "魚肉去骨去皮，剁成泥，加澱粉、鹽、胡椒粉攪拌上勁，擠成魚丸。", "image": "https://via.placeholder.com/400x300?text=製作魚丸", "timer": null },
+            { "number": 2, "text": "高湯煮開，放入魚丸煮至浮起。", "image": "https://via.placeholder.com/400x300?text=煮魚丸", "timer": "10分鐘" },
+            { "number": 3, "text": "加鹽調味，撒上香菜即可。", "image": "https://via.placeholder.com/400x300?text=調味", "timer": null }
+        ]
+    },
+    {
+        "name": "軟溜珠簾魚",
+        "keyIngredients": ["魚肉", "雞蛋", "澱粉"],
+        "ingredients": ["魚肉", "雞蛋", "澱粉", "蔥", "薑", "料酒", "鹽", "食用油", "高湯", "白醋", "白糖"],
+        "difficulty": "高級", 
+        "time": "40分鐘", 
+        "health": "滑嫩鮮美", 
+        "intro": "魚肉滑嫩，酸甜可口，淮揚菜。", 
+        "image": "https://via.placeholder.com/300x200?text=軟溜珠廉魚",
+        "steps": [
+            { "number": 1, "text": "魚肉片成薄片，用料酒、鹽、蛋清、澱粉醃製。", "image": "https://via.placeholder.com/400x300?text=處理魚片", "timer": null },
+            { "number": 2, "text": "鍋中燒油，放入魚片滑熟撈出。", "image": "https://via.placeholder.com/400x300?text=滑魚片", "timer": null },
+            { "number": 3, "text": "另起鍋，用高湯、白醋、白糖、鹽勾芡，倒入魚片快速翻炒均勻即可。", "image": "https://via.placeholder.com/400x300?text=淋汁", "timer": null }
+        ]
+    },
+    {
+        "name": "龍身鳳尾蝦",
+        "keyIngredients": ["蝦仁", "青豆", "玉米"],
+        "ingredients": ["蝦仁", "青豆", "玉米", "雞蛋", "澱粉", "鹽", "料酒", "食用油", "高湯"],
+        "difficulty": "中級", 
+        "time": "25分鐘", 
+        "health": "鮮美", 
+        "intro": "造型優美，蝦仁Q彈，清淡可口。", 
+        "image": "https://via.placeholder.com/300x200?text=龍身鳳尾蝦",
+        "steps": [
+            { "number": 1, "text": "蝦仁去蝦線，用料酒、鹽、澱粉、蛋清醃製。青豆、玉米焯水。", "image": "https://via.placeholder.com/400x300?text=準備蝦仁", "timer": null },
+            { "number": 2, "text": "鍋中放油，滑炒蝦仁至變色。", "image": "https://via.placeholder.com/400x300?text=炒蝦仁", "timer": null },
+            { "number": 3, "text": "加入青豆、玉米粒翻炒，加高湯，勾芡即可。", "image": "https://via.placeholder.com/400x300?text=炒熟", "timer": null }
+        ]
+    },
+    {
+        "name": "油爆雙脆",
+        "keyIngredients": ["豬肚", "雞胗"],
+        "ingredients": ["豬肚", "雞胗", "竹筍", "香菇", "蔥", "薑", "蒜", "料酒", "生抽", "白糖", "醋", "食用油", "澱粉"],
+        "difficulty": "高級", 
+        "time": "35分鐘", 
+        "health": "口感豐富", 
+        "intro": "豬肚雞胗脆嫩爽口，魯菜經典。", 
+        "image": "https://via.placeholder.com/300x200?text=油爆雙脆",
+        "steps": [
+            { "number": 1, "text": "豬肚、雞胗洗淨切片，焯水備用。竹筍、香菇切片。蔥薑蒜切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "鍋中燒油至高溫，快速放入豬肚、雞胗、竹筍、香菇爆炒。", "image": "https://via.placeholder.com/400x300?text=爆炒", "timer": null },
+            { "number": 3, "text": "加入料酒、生抽、白糖、醋、鹽調味，快速翻炒均勻勾芡即可。", "image": "https://via.placeholder.com/400x300?text=調味勾芡", "timer": null }
+        ]
+    },
+    {
+        "name": "金陵丸子",
+        "keyIngredients": ["豬肉餡", "馬蹄"],
+        "ingredients": ["豬肉餡", "馬蹄", "雞蛋", "蔥", "薑", "醬油", "麻油", "澱粉", "食用油", "高湯"],
+        "difficulty": "中級", 
+        "time": "40分鐘", 
+        "health": "鮮美", 
+        "intro": "丸子鬆軟，湯汁鮮美，南京特色。", 
+        "image": "https://via.placeholder.com/300x200?text=金陵丸子",
+        "steps": [
+            { "number": 1, "text": "豬肉餡加馬蹄碎、雞蛋、蔥薑末、醬油、麻油、澱粉調味，搓成丸子。", "image": "https://via.placeholder.com/400x300?text=搓丸子", "timer": null },
+            { "number": 2, "text": "丸子放入油鍋中炸至金黃。", "image": "https://via.placeholder.com/400x300?text=炸丸子", "timer": "10分鐘" },
+            { "number": 3, "text": "放入高湯中煮熟，加鹽調味即可。", "image": "https://via.placeholder.com/400x300?text=煮丸子", "timer": "20分鐘" }
+        ]
+    },
+    {
+        "name": "白汁圓菜",
+        "keyIngredients": ["圓白菜", "高湯"],
+        "ingredients": ["圓白菜", "高湯", "蔥", "薑", "食用油", "鹽", "雞精"],
+        "difficulty": "初級", 
+        "time": "20分鐘", 
+        "health": "清淡", 
+        "intro": "清淡爽口，圓白菜的鮮甜與高湯融合。", 
+        "image": "https://via.placeholder.com/300x200?text=白汁圓菜",
+        "steps": [
+            { "number": 1, "text": "圓白菜洗淨切塊。蔥薑切末。", "image": "https://via.placeholder.com/400x300?text=準備圓白菜", "timer": null },
+            { "number": 2, "text": "鍋中放油，爆香蔥薑，放入圓白菜翻炒。", "image": "https://via.placeholder.com/400x300?text=炒菜", "timer": null },
+            { "number": 3, "text": "加入高湯，煮至圓白菜軟爛，加鹽、雞精調味即可。", "image": "https://via.placeholder.com/400x300?text=煮熟", "timer": "10分鐘" }
+        ]
+    },
+    {
+        "name": "清燉蟹粉獅子頭",
+        "keyIngredients": ["豬肉餡", "蟹肉", "蟹黃"],
+        "ingredients": ["豬肉餡", "蟹肉", "蟹黃", "蔥", "薑", "高湯", "鹽", "料酒", "澱粉"],
+        "difficulty": "特級", 
+        "time": "120分鐘", 
+        "health": "鮮美滋補", 
+        "intro": "肉丸鬆軟，蟹粉鮮香，淮揚菜經典。", 
+        "image": "https://via.placeholder.com/300x200?text=清燉蟹粉獅子頭",
+        "steps": [
+            { "number": 1, "text": "豬肉餡加蟹肉、蟹黃、蔥薑末、料酒、鹽、澱粉調味，搓成大丸子。", "image": "https://via.placeholder.com/400x300?text=製作獅子頭", "timer": null },
+            { "number": 2, "text": "將獅子頭放入砂鍋中，加入足量高湯，小火慢燉1.5-2小時。", "image": "https://via.placeholder.com/400x300?text=清燉", "timer": "90分鐘" },
+            { "number": 3, "text": "加鹽調味即可享用。", "image": "https://via.placeholder.com/400x300?text=調味", "timer": null }
+        ]
+    },
+    {
+        "name": "水晶肴蹄",
+        "keyIngredients": ["豬蹄", "硝"],
+        "ingredients": ["豬蹄", "硝", "鹽", "蔥", "薑", "八角", "桂皮", "花椒", "料酒"],
+        "difficulty": "特級", 
+        "time": "360分鐘", 
+        "health": "鹹鮮", 
+        "intro": "皮白肉嫩，晶瑩剔透，鎮江名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=水晶肴蹄",
+        "steps": [
+            { "number": 1, "text": "豬蹄洗淨，用硝和鹽醃製數小時，焯水。", "image": "https://via.placeholder.com/400x300?text=醃製豬蹄", "timer": "180分鐘" },
+            { "number": 2, "text": "將豬蹄與蔥薑、八角、桂皮、花椒、料酒一同放入鍋中，加足量水，大火燒開轉小火慢燉3-4小時。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "240分鐘" },
+            { "number": 3, "text": "取出放涼，壓實切片即可。", "image": "https://via.placeholder.com/400x300?text=切片", "timer": null }
+        ]
+    },
+    {
+        "name": "雞湯煮干絲",
+        "keyIngredients": ["豆腐乾絲", "雞湯"],
+        "ingredients": ["豆腐乾絲", "雞湯", "火腿絲", "雞蛋絲", "蝦仁", "薑絲", "食用油", "鹽", "蔥花"],
+        "difficulty": "中級", 
+        "time": "30分鐘", 
+        "health": "清淡鮮美", 
+        "intro": "豆腐乾絲吸飽雞湯精華，淮揚菜經典。", 
+        "image": "https://via.placeholder.com/300x200?text=雞湯煮干絲",
+        "steps": [
+            { "number": 1, "text": "豆腐乾絲用熱水燙軟。火腿、雞蛋切絲，蝦仁備用。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "鍋中燒熱雞湯，放入乾絲、火腿絲、蝦仁煮熟。", "image": "https://via.placeholder.com/400x300?text=煮干絲", "timer": "15分鐘" },
+            { "number": 3, "text": "加鹽調味，撒上雞蛋絲、蔥花和薑絲即可。", "image": "https://via.placeholder.com/400x300?text=調味", "timer": null }
+        ]
+    },
+    {
+        "name": "鳳尾蝦",
+        "keyIngredients": ["蝦仁", "麵包糠"],
+        "ingredients": ["蝦仁", "麵包糠", "雞蛋", "澱粉", "鹽", "胡椒粉", "食用油"],
+        "difficulty": "中級", 
+        "time": "20分鐘", 
+        "health": "香脆", 
+        "intro": "外酥裡嫩，形似鳳尾，炸物小吃。", 
+        "image": "https://via.placeholder.com/300x200?text=鳳尾蝦",
+        "steps": [
+            { "number": 1, "text": "蝦仁去蝦線，用鹽、胡椒粉、料酒醃製，裹上澱粉、蛋液、麵包糠。", "image": "https://via.placeholder.com/400x300?text=裹粉", "timer": null },
+            { "number": 2, "text": "鍋中燒油至七成熱，放入蝦仁炸至金黃酥脆即可。", "image": "https://via.placeholder.com/400x300?text=炸蝦仁", "timer": "5分鐘" }
+        ]
+    },
+    {
+        "name": "三套鴨",
+        "keyIngredients": ["鴨", "雞", "鴿"],
+        "ingredients": ["鴨", "雞", "鴿", "火腿", "香菇", "筍片", "高湯", "鹽", "料酒"],
+        "difficulty": "特級", 
+        "time": "300分鐘", 
+        "health": "滋補豪華", 
+        "intro": "鴨中套雞，雞中套鴿，湯鮮味濃，淮揚名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=三套鴨",
+        "steps": [
+            { "number": 1, "text": "鴨、雞、鴿分別去骨，套疊在一起。", "image": "https://via.placeholder.com/400x300?text=套疊", "timer": null },
+            { "number": 2, "text": "與火腿、香菇、筍片一同放入大鍋中，加足量高湯、料酒、鹽，大火燒開轉小火慢燉4-5小時。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "240分鐘" },
+            { "number": 3, "text": "取出切塊即可享用。", "image": "https://via.placeholder.com/400x300?text=切塊", "timer": null }
+        ]
+    },
+    {
+        "name": "無錫肉骨頭",
+        "keyIngredients": ["豬肉骨", "醬油", "冰糖"],
+        "ingredients": ["豬肉骨", "醬油", "冰糖", "料酒", "蔥", "薑", "八角", "桂皮", "食用油", "水"],
+        "difficulty": "中級", 
+        "time": "90分鐘", 
+        "health": "鹹甜軟爛", 
+        "intro": "骨肉軟爛，鹹甜適中，無錫地方名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=無錫肉骨頭",
+        "steps": [
+            { "number": 1, "text": "豬肉骨斬塊，洗淨焯水。蔥薑切片。", "image": "https://via.placeholder.com/400x300?text=處理肉骨", "timer": null },
+            { "number": 2, "text": "鍋中放油，炒香蔥薑，放入肉骨翻炒。", "image": "https://via.placeholder.com/400x300?text=炒肉骨", "timer": null },
+            { "number": 3, "text": "加入醬油、冰糖、料酒、八角、桂皮、足量水，大火燒開轉小火慢燉1小時。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "60分鐘" },
+            { "number": 4, "text": "大火收汁即可。", "image": "https://via.placeholder.com/400x300?text=收汁", "timer": null }
+        ]
+    },
+    {
+        "name": "陸稿薦醬豬頭肉",
+        "keyIngredients": ["豬頭肉", "醬油", "香料"],
+        "ingredients": ["豬頭肉", "醬油", "香料", "冰糖", "料酒", "蔥", "薑", "八角", "桂皮", "丁香", "小茴香", "草果", "水"],
+        "difficulty": "高級", 
+        "time": "180分鐘", 
+        "health": "鹹香", 
+        "intro": "肉質軟爛，醬香濃郁，蘇州老字號名點。", 
+        "image": "https://via.placeholder.com/300x200?text=陸稿薦醬豬頭肉",
+        "steps": [
+            { "number": 1, "text": "豬頭肉處理乾淨，焯水。", "image": "https://via.placeholder.com/400x300?text=處理豬頭肉", "timer": null },
+            { "number": 2, "text": "將豬頭肉與醬油、冰糖、料酒、蔥薑和各種香料一同放入鍋中，加足量水，大火燒開轉小火慢燉2-3小時。", "image": "https://via.placeholder.com/400x300?text=醬製", "timer": "150分鐘" },
+            { "number": 3, "text": "放涼後切片即可享用。", "image": "https://via.placeholder.com/400x300?text=切片", "timer": null }
+        ]
+    },
+    {
+        "name": "西湖醋魚",
+        "keyIngredients": ["草魚", "醋", "糖"],
+        "ingredients": ["草魚", "醋", "糖", "醬油", "料酒", "薑", "澱粉", "食用油"],
+        "difficulty": "中級", 
+        "time": "30分鐘", 
+        "health": "酸甜鮮美", 
+        "intro": "魚肉鮮嫩，酸甜可口，杭州名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=西湖醋魚",
+        "steps": [
+            { "number": 1, "text": "草魚處理乾淨，從中片開。", "image": "https://via.placeholder.com/400x300?text=處理草魚", "timer": null },
+            { "number": 2, "text": "將魚放入沸水中煮熟，撈出擺盤。", "image": "https://via.placeholder.com/400x300?text=煮魚", "timer": "10分鐘" },
+            { "number": 3, "text": "鍋中放入醋、糖、醬油、料酒、薑末煮開，勾芡，淋在魚身上即可。", "image": "https://via.placeholder.com/400x300?text=淋汁", "timer": null }
+        ]
+    },
+    {
+        "name": "東坡肉",
+        "keyIngredients": ["五花肉", "醬油", "冰糖"],
+        "ingredients": ["五花肉", "醬油", "冰糖", "料酒", "蔥", "薑", "食用油", "水"],
+        "difficulty": "高級", 
+        "time": "180分鐘", 
+        "health": "肥而不膩", 
+        "intro": "肉質軟爛，入口即化，杭州名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=東坡肉",
+        "steps": [
+            { "number": 1, "text": "五花肉切塊，焯水。", "image": "https://via.placeholder.com/400x300?text=處理五花肉", "timer": null },
+            { "number": 2, "text": "鍋中放油，炒香蔥薑，放入五花肉塊翻炒。", "image": "https://via.placeholder.com/400x300?text=炒肉塊", "timer": null },
+            { "number": 3, "text": "加入醬油、冰糖、料酒、足量水，大火燒開轉小火慢燉1.5-2小時，直至肉軟爛入味。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "120分鐘" },
+            { "number": 4, "text": "大火收汁即可。", "image": "https://via.placeholder.com/400x300?text=收汁", "timer": null }
+        ]
+    },
+    {
+        "name": "荷葉粉蒸肉",
+        "keyIngredients": ["五花肉", "糯米粉", "荷葉"],
+        "ingredients": ["五花肉", "糯米粉", "荷葉", "醬油", "料酒", "腐乳汁", "花椒粉", "薑", "蔥"],
+        "difficulty": "中級", 
+        "time": "90分鐘", 
+        "health": "軟糯香濃", 
+        "intro": "肉質軟爛，米粉香糯，荷葉清香。", 
+        "image": "https://via.placeholder.com/300x200?text=荷葉粉蒸肉",
+        "steps": [
+            { "number": 1, "text": "五花肉切片，用醬油、料酒、腐乳汁、花椒粉、薑蔥醃製，裹上糯米粉。", "image": "https://via.placeholder.com/400x300?text=醃製裹粉", "timer": "30分鐘" },
+            { "number": 2, "text": "荷葉鋪底，將裹好粉的肉片擺入，上鍋蒸1小時。", "image": "https://via.placeholder.com/400x300?text=蒸肉", "timer": "60分鐘" },
+            { "number": 3, "text": "蒸熟後即可享用。", "image": "https://via.placeholder.com/400x300?text=蒸熟", "timer": null }
+        ]
+    },
+    {
+        "name": "西湖莼菜湯",
+        "keyIngredients": ["莼菜", "雞蛋", "火腿"],
+        "ingredients": ["莼菜", "雞蛋", "火腿", "高湯", "鹽", "雞精", "香油"],
+        "difficulty": "初級", 
+        "time": "15分鐘", 
+        "health": "清淡鮮美", 
+        "intro": "湯清味醇，莼菜滑嫩，西湖名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=西湖莼菜湯",
+        "steps": [
+            { "number": 1, "text": "莼菜洗淨。雞蛋打散，火腿切絲。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "高湯煮開，放入莼菜和火腿絲。", "image": "https://via.placeholder.com/400x300?text=煮湯", "timer": null },
+            { "number": 3, "text": "淋入蛋液，加鹽、雞精調味，淋少許香油即可。", "image": "https://via.placeholder.com/400x300?text=調味", "timer": null }
+        ]
+    },
+    {
+        "name": "龍井蝦仁",
+        "keyIngredients": ["蝦仁", "龍井茶"],
+        "ingredients": ["蝦仁", "龍井茶", "雞蛋清", "澱粉", "料酒", "鹽", "食用油"],
+        "difficulty": "中級", 
+        "time": "20分鐘", 
+        "health": "清淡鮮美", 
+        "intro": "蝦仁Q彈，茶香清雅，杭州名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=龍井蝦仁",
+        "steps": [
+            { "number": 1, "text": "蝦仁去蝦線，用鹽、料酒、蛋清、澱粉醃製。龍井茶用熱水泡開取茶湯。", "image": "https://via.placeholder.com/400x300?text=準備蝦仁茶葉", "timer": null },
+            { "number": 2, "text": "鍋中放油，滑炒蝦仁至變色。", "image": "https://via.placeholder.com/400x300?text=炒蝦仁", "timer": null },
+            { "number": 3, "text": "倒入茶湯和茶葉，快速翻炒均勻即可。", "image": "https://via.placeholder.com/400x300?text=炒熟", "timer": null }
+        ]
+    },
+    {
+        "name": "虎跑素火腿",
+        "keyIngredients": ["豆腐乾", "香菇", "金針菇"],
+        "ingredients": ["豆腐乾", "香菇", "金針菇", "醬油", "白糖", "素蠔油", "麻油", "薑", "食用油"],
+        "difficulty": "中級", 
+        "time": "40分鐘", 
+        "health": "素食", 
+        "intro": "形似火腿，味道鹹鮮，杭州素菜。", 
+        "image": "https://via.placeholder.com/300x200?text=虎跑素火腿",
+        "steps": [
+            { "number": 1, "text": "豆腐乾、香菇、金針菇切絲。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "鍋中放油，炒香薑絲，放入豆腐乾絲、香菇絲、金針菇絲翻炒。", "image": "https://via.placeholder.com/400x300?text=炒素菜", "timer": null },
+            { "number": 3, "text": "加入醬油、白糖、素蠔油調味，炒至入味即可。", "image": "https://via.placeholder.com/400x300?text=調味", "timer": null }
+        ]
+    },
+    {
+        "name": "香酥燜肉",
+        "keyIngredients": ["五花肉", "麵粉"],
+        "ingredients": ["五花肉", "麵粉", "雞蛋", "料酒", "生抽", "鹽", "五香粉", "食用油"],
+        "difficulty": "中級", 
+        "time": "60分鐘", 
+        "health": "香酥", 
+        "intro": "外皮酥脆，肉質軟爛，風味獨特。", 
+        "image": "https://via.placeholder.com/300x200?text=香酥燜肉",
+        "steps": [
+            { "number": 1, "text": "五花肉切塊，用料酒、生抽、鹽、五香粉醃製。", "image": "https://via.placeholder.com/400x300?text=醃製肉", "timer": "30分鐘" },
+            { "number": 2, "text": "裹上麵粉和蛋液，放入油鍋中炸至金黃酥脆。", "image": "https://via.placeholder.com/400x300?text=炸肉", "timer": "10分鐘" },
+            { "number": 3, "text": "炸好的肉塊放入鍋中，加少量水燜煮至軟爛入味即可。", "image": "https://via.placeholder.com/400x300?text=燜煮", "timer": "15分鐘" }
+        ]
+    },
+    {
+        "name": "蝦爆鱔背",
+        "keyIngredients": ["鱔魚", "蝦仁"],
+        "ingredients": ["鱔魚", "蝦仁", "蔥", "薑", "蒜", "料酒", "生抽", "白糖", "澱粉", "食用油"],
+        "difficulty": "高級", 
+        "time": "30分鐘", 
+        "health": "鮮美", 
+        "intro": "鱔魚軟嫩，蝦仁Q彈，味道鮮美。", 
+        "image": "https://via.placeholder.com/300x200?text=蝦爆鱔背",
+        "steps": [
+            { "number": 1, "text": "鱔魚宰殺洗淨取鱔背，切段。蝦仁去蝦線。", "image": "https://via.placeholder.com/400x300?text=處理食材", "timer": null },
+            { "number": 2, "text": "鍋中放油，爆炒鱔背和蝦仁至變色。", "image": "https://via.placeholder.com/400x300?text=爆炒", "timer": null },
+            { "number": 3, "text": "加入蔥薑蒜、料酒、生抽、白糖調味，快速翻炒均勻即可。", "image": "https://via.placeholder.com/400x300?text=炒熟", "timer": null }
+        ]
+    },
+    {
+        "name": "油燜春筍",
+        "keyIngredients": ["春筍", "醬油", "白糖"],
+        "ingredients": ["春筍", "醬油", "白糖", "食用油"],
+        "difficulty": "初級", 
+        "time": "20分鐘", 
+        "health": "清脆鮮美", 
+        "intro": "清脆爽口，鮮甜美味，江南春季名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=油燜春筍",
+        "steps": [
+            { "number": 1, "text": "春筍去殼洗淨，切滾刀塊，焯水。", "image": "https://via.placeholder.com/400x300?text=處理春筍", "timer": null },
+            { "number": 2, "text": "鍋中放油，放入春筍塊翻炒。", "image": "https://via.placeholder.com/400x300?text=炒春筍", "timer": null },
+            { "number": 3, "text": "加入醬油、白糖和少量水，小火燜煮至湯汁濃稠即可。", "image": "https://via.placeholder.com/400x300?text=燜煮", "timer": "10分鐘" }
+        ]
+    },
+    {
+        "name": "海參盆蒸",
+        "keyIngredients": ["海參", "豬肉", "香菇"],
+        "ingredients": ["海參", "豬肉", "香菇", "高湯", "蠔油", "澱粉", "薑", "蔥"],
+        "difficulty": "高級", 
+        "time": "60分鐘", 
+        "health": "滋補", 
+        "intro": "海參軟糯，湯汁濃郁，湘菜。", 
+        "image": "https://via.placeholder.com/300x200?text=海參盆蒸",
+        "steps": [
+            { "number": 1, "text": "海參泡發切段。豬肉切片，香菇泡軟切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "將海參、豬肉、香菇放入盆中，加薑蔥、高湯、蠔油、鹽調味。", "image": "https://via.placeholder.com/400x300?text=裝盆", "timer": null },
+            { "number": 3, "text": "上鍋蒸40分鐘至海參軟糯，勾芡即可。", "image": "https://via.placeholder.com/400x300?text=蒸煮", "timer": "40分鐘" }
+        ]
+    },
+    {
+        "name": "臘味合蒸",
+        "keyIngredients": ["臘肉", "臘腸", "臘魚"],
+        "ingredients": ["臘肉", "臘腸", "臘魚", "薑", "蒜", "豆豉", "料酒", "生抽", "食用油"],
+        "difficulty": "中級", 
+        "time": "40分鐘", 
+        "health": "鹹香濃郁", 
+        "intro": "多種臘味同蒸，香氣四溢，湖南家常菜。", 
+        "image": "https://via.placeholder.com/300x200?text=臘味合蒸",
+        "steps": [
+            { "number": 1, "text": "臘肉、臘腸、臘魚切片。薑蒜切末，豆豉備用。", "image": "https://via.placeholder.com/400x300?text=準備臘味", "timer": null },
+            { "number": 2, "text": "將所有臘味鋪在盤中，撒上薑蒜末、豆豉，淋上料酒和生抽。", "image": "https://via.placeholder.com/400x300?text=擺盤調味", "timer": null },
+            { "number": 3, "text": "上鍋蒸30分鐘至臘味熟透即可。", "image": "https://via.placeholder.com/400x300?text=蒸煮", "timer": "30分鐘" }
+        ]
+    },
+    {
+        "name": "走油豆豉扣肉",
+        "keyIngredients": ["五花肉", "豆豉"],
+        "ingredients": ["五花肉", "豆豉", "薑", "蒜", "料酒", "生抽", "老抽", "白糖", "食用油", "腐乳汁"],
+        "difficulty": "高級", 
+        "time": "180分鐘", 
+        "health": "鹹香軟糯", 
+        "intro": "肉質軟爛，豆豉鹹香，湘菜經典。", 
+        "image": "https://via.placeholder.com/300x200?text=走油豆豉扣肉",
+        "steps": [
+            { "number": 1, "text": "五花肉焯水後炸至表皮金黃，切片。豆豉、薑蒜切碎。", "image": "https://via.placeholder.com/400x300?text=處理肉豆豉", "timer": "30分鐘" },
+            { "number": 2, "text": "肉片與豆豉、薑蒜碎、料酒、生抽、老抽、白糖、腐乳汁混合調味，擺入碗中，上鍋蒸2-3小時。", "image": "https://via.placeholder.com/400x300?text=蒸煮", "timer": "120分鐘" },
+            { "number": 3, "text": "取出倒扣在盤中即可。", "image": "https://via.placeholder.com/400x300?text=扣肉", "timer": null }
+        ]
+    },
+    {
+        "name": "麻辣子雞",
+        "keyIngredients": ["雞肉", "乾辣椒", "花椒"],
+        "ingredients": ["雞肉", "乾辣椒", "花椒", "薑", "蒜", "料酒", "生抽", "白糖", "食用油", "鹽", "蔥"],
+        "difficulty": "高級", 
+        "time": "35分鐘", 
+        "health": "麻辣", 
+        "intro": "麻辣鮮香，雞肉酥脆，湘菜代表。", 
+        "image": "https://via.placeholder.com/300x200?text=麻辣子雞",
+        "steps": [
+            { "number": 1, "text": "雞肉斬小塊，用料酒、鹽醃製。乾辣椒剪段，花椒備用。薑蒜切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": "15分鐘" },
+            { "number": 2, "text": "鍋中燒油，放入雞塊炸至金黃酥脆撈出。", "image": "https://via.placeholder.com/400x300?text=炸雞塊", "timer": "5分鐘" },
+            { "number": 3, "text": "鍋中留底油，放入乾辣椒、花椒、薑蒜爆香，倒入炸好的雞塊，快速翻炒，加少許糖調味，撒上蔥段即可。", "image": "https://via.placeholder.com/400x300?text=炒雞塊", "timer": null }
+        ]
+    },
+    {
+        "name": "冰糖湘蓮",
+        "keyIngredients": ["蓮子", "冰糖"],
+        "ingredients": ["蓮子", "冰糖", "紅棗", "枸杞", "水"],
+        "difficulty": "中級", 
+        "time": "60分鐘", 
+        "health": "滋補甜品", 
+        "intro": "清甜滋潤，蓮子軟糯，湖南傳統甜品。", 
+        "image": "https://via.placeholder.com/300x200?text=冰糖湘蓮",
+        "steps": [
+            { "number": 1, "text": "蓮子泡軟去芯。紅棗去核，枸杞洗淨。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "將蓮子、冰糖、紅棗、枸杞放入鍋中，加足量水，小火慢燉40分鐘至蓮子軟糯。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "40分鐘" },
+            { "number": 3, "text": "即可享用。", "image": "https://via.placeholder.com/400x300?text=享用", "timer": null }
+        ]
+    },
+    {
+        "name": "臭豆腐",
+        "keyIngredients": ["臭豆腐", "辣椒油", "醬油"],
+        "ingredients": ["臭豆腐", "辣椒油", "醬油", "蒜蓉", "香菜", "食用油"],
+        "difficulty": "初級", 
+        "time": "15分鐘", 
+        "health": "地方小吃", 
+        "intro": "外酥裡嫩，香氣獨特，湖南長沙名小吃。", 
+        "image": "https://via.placeholder.com/300x200?text=臭豆腐",
+        "steps": [
+            { "number": 1, "text": "臭豆腐切塊。", "image": "https://via.placeholder.com/400x300?text=準備臭豆腐", "timer": null },
+            { "number": 2, "text": "鍋中燒油至七成熱，放入臭豆腐炸至外皮酥脆。", "image": "https://via.placeholder.com/400x300?text=炸臭豆腐", "timer": "5分鐘" },
+            { "number": 3, "text": "撈出瀝油，淋上辣椒油、醬油、蒜蓉、香菜即可。", "image": "https://via.placeholder.com/400x300?text=調味", "timer": null }
+        ]
+    },
+    {
+        "name": "紅燒寒菌",
+        "keyIngredients": ["寒菌", "豬肉"],
+        "ingredients": ["寒菌", "豬肉", "薑", "蒜", "醬油", "料酒", "食用油", "水"],
+        "difficulty": "中級", 
+        "time": "30分鐘", 
+        "health": "鮮美", 
+        "intro": "菌菇鮮香，肉質軟爛，湖南特色菜。", 
+        "image": "https://via.placeholder.com/300x200?text=紅燒寒菌",
+        "steps": [
+            { "number": 1, "text": "寒菌洗淨。豬肉切片。薑蒜切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "鍋中放油，炒香薑蒜，放入豬肉片炒香。", "image": "https://via.placeholder.com/400x300?text=炒肉", "timer": null },
+            { "number": 3, "text": "加入寒菌翻炒，加醬油、料酒和適量水，紅燒至入味即可。", "image": "https://via.placeholder.com/400x300?text=紅燒", "timer": "15分鐘" }
+        ]
+    },
+    {
+        "name": "炒血鴨",
+        "keyIngredients": ["鴨肉", "鴨血", "辣椒"],
+        "ingredients": ["鴨肉", "鴨血", "辣椒", "薑", "蒜", "料酒", "生抽", "食用油", "米酒"],
+        "difficulty": "高級", 
+        "time": "40分鐘", 
+        "health": "風味獨特", 
+        "intro": "鴨肉鮮辣，鴨血軟糯，湖南特色菜。", 
+        "image": "https://via.placeholder.com/300x200?text=炒血鴨",
+        "steps": [
+            { "number": 1, "text": "鴨肉斬塊，洗淨焯水。鴨血切塊。辣椒切段。薑蒜切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "鍋中放油，放入鴨肉塊煸炒至出油。", "image": "https://via.placeholder.com/400x300?text=煸炒鴨肉", "timer": null },
+            { "number": 3, "text": "加入薑蒜、辣椒炒香，加料酒、生抽、米酒和適量水，燜煮至鴨肉熟透。", "image": "https://via.placeholder.com/400x300?text=燜煮", "timer": "20分鐘" },
+            { "number": 4, "text": "最後倒入鴨血，快速翻炒均勻即可。", "image": "https://via.placeholder.com/400x300?text=炒血鴨", "timer": null }
+        ]
+    },
+    {
+        "name": "湘西酸肉",
+        "keyIngredients": ["豬肉", "酸菜", "辣椒"],
+        "ingredients": ["豬肉", "酸菜", "辣椒", "薑", "蒜", "花椒", "食用油", "鹽"],
+        "difficulty": "中級", 
+        "time": "30分鐘", 
+        "health": "酸辣", 
+        "intro": "酸辣開胃，肉質彈牙，湘西特色。", 
+        "image": "https://via.placeholder.com/300x200?text=湘西酸肉",
+        "steps": [
+            { "number": 1, "text": "豬肉切片，酸菜洗淨切段。辣椒切段。薑蒜切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "鍋中放油，炒香薑蒜、花椒、辣椒，放入豬肉片炒香。", "image": "https://via.placeholder.com/400x300?text=炒肉", "timer": null },
+            { "number": 3, "text": "加入酸菜翻炒，加鹽調味，炒至入味即可。", "image": "https://via.placeholder.com/400x300?text=炒酸肉", "timer": "15分鐘" }
+        ]
+    }
+]
