@@ -513,8 +513,8 @@
         async function loadRecipes() {
             try {
                 const response = await fetch('recipes.json');
-                if (!response.ok) throw new Error('載入食譜資料失敗');
-                mockRecipes = await response.json();
+if (!response.ok) throw new Error('載入食譜資料失敗');
+mockRecipes = await response.json();
 
                 // 重新生成常用食材標籤
                 updateCommonIngredients();
