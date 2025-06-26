@@ -757,8 +757,9 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
                     }
                 });
             } else {
-                 alert('沒有識別到食材，請嘗試重新掃描或手動輸入。');
+                alert('沒有識別到食材，請嘗試重新掃描或手動輸入。');
             }
+            hideLoading(); // ← 加這一行，確保 loading 一定會被關閉
         }
 
         // 添加食材到列表
