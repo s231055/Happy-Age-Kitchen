@@ -568,12 +568,15 @@ mockRecipes = await response.json();
             }
         }
 
-        // 攝像頭控制
-        startCameraButton.addEventListener('click', startCamera);
-        takePhotoButton.addEventListener('click', takePhoto);
-        clearIdentifiedButton.addEventListener('click', clearIdentifiedIngredients);
-        confirmIngredientsButton.addEventListener('click', findRecipesFromIdentified);
-        findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
+        // DOM 元素快取
+const commonIngredientsTagsContainer = document.getElementById('common-ingredients-tags');
+
+// 攝像頭控制
+startCameraButton.addEventListener('click', startCamera);
+takePhotoButton.addEventListener('click', takePhoto);
+clearIdentifiedButton.addEventListener('click', clearIdentifiedIngredients);
+confirmIngredientsButton.addEventListener('click', findRecipesFromIdentified);
+findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
 
         async function startCamera() {
             try {
