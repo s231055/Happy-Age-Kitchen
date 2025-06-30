@@ -514,7 +514,7 @@ const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
         let mockRecipes = [
   {
     "name": "番茄炒蛋",
-    "keyIngredients": ["番茄", "雞蛋"],
+    "keyIngredients": ["番茄", "tomato", "鸡蛋", "雞蛋", "egg"],
     "ingredients": ["番茄", "雞蛋", "鹽", "油"],
     "difficulty": "簡單",
     "time": "10分鐘",
@@ -907,41 +907,52 @@ mockRecipes = await response.json();
         }
 
 
-        // 過濾並顯示食譜
-        function filterAndDisplayRecipes(inputIngredients) {
-            const normalizedInput = inputIngredients.map(item => item.toLowerCase());
-            // 修改為：只要有一個 keyIngredient 出現在 inputIngredients 就顯示
-            const foundRecipes = mockRecipes.filter(recipe => {
-                return recipe.keyIngredients.some(keyIng => normalizedInput.includes(keyIng.toLowerCase()));
-            });
+        // 簡繁轉換（簡易版，只處理常見字，實際可用第三方庫如 opencc-js）
+function toSimplified(str) {
+    const map = {'雞':'鸡','蛋':'蛋','番茄':'番茄','蔥':'葱','薑':'姜','蒜':'蒜','飯':'饭','麵':'面','魚':'鱼','豬':'猪','牛':'牛','湯':'汤','麵包':'面包','蘋果':'苹果','馬鈴薯':'马铃薯','紅蘿蔔':'红萝卜'};
+    return str.split('').map(c => map[c] || c).join('');
+}
 
-            recipesContainer.innerHTML = ''; // 清空現有食譜
+// 過濾並顯示食譜
+function filterAndDisplayRecipes(inputIngredients) {
+    const normalizedInput = inputIngredients.map(item => item.toLowerCase());
+    // 加入簡體比對
+    const normalizedInputWithSimple = normalizedInput.concat(normalizedInput.map(toSimplified));
 
-            if (foundRecipes.length > 0) {
-                foundRecipes.forEach(recipe => {
-                    const card = document.createElement('div');
-                    card.classList.add('recipe-card');
-                    card.innerHTML = `
-                        <img src="${recipe.image}" alt="${recipe.name}">
-                        <div class="recipe-card-content">
-                            <h3>${recipe.name}</h3>
-                            <p><strong>難度:</strong> ${recipe.difficulty}</p>
-                            <p><strong>時間:</strong> ${recipe.time}</p>
-                            <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
-                            <div class="tags">
-                                ${recipe.keyIngredients.map(ing => `<span>${ing}</span>`).join('')}
-                            </div>
-                        </div>
-                    `;
-                    card.onclick = () => showRecipeDetail(recipe);
-                    recipesContainer.appendChild(card);
-                });
-                showPage('recipe-list-page');
-                stopCamera(); // 轉到食譜列表頁時停止攝像頭
-            } else {
-                alert('很抱歉，沒有找到符合您食材的食譜。請嘗試調整食材列表。');
-            }
-        }
+    const foundRecipes = mockRecipes.filter(recipe => {
+        return recipe.keyIngredients.some(keyIng => {
+            const keyIngLower = keyIng.toLowerCase();
+            return normalizedInputWithSimple.includes(keyIngLower) || normalizedInputWithSimple.includes(toSimplified(keyIngLower));
+        });
+    });
+
+    recipesContainer.innerHTML = ''; // 清空現有食譜
+
+    if (foundRecipes.length > 0) {
+        foundRecipes.forEach(recipe => {
+            const card = document.createElement('div');
+            card.classList.add('recipe-card');
+            card.innerHTML = `
+                <img src="${recipe.image}" alt="${recipe.name}">
+                <div class="recipe-card-content">
+                    <h3>${recipe.name}</h3>
+                    <p><strong>難度:</strong> ${recipe.difficulty}</p>
+                    <p><strong>時間:</strong> ${recipe.time}</p>
+                    <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
+                    <div class="tags">
+                        ${recipe.keyIngredients.map(ing => `<span>${ing}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+            card.onclick = () => showRecipeDetail(recipe);
+            recipesContainer.appendChild(card);
+        });
+        showPage('recipe-list-page');
+        stopCamera();
+    } else {
+        alert('很抱歉，沒有找到符合您食材的食譜。請嘗試調整食材列表。');
+    }
+}
 
         // 顯示食譜詳情
         function showRecipeDetail(recipe) {
