@@ -910,9 +910,9 @@ mockRecipes = await response.json();
         // 過濾並顯示食譜
         function filterAndDisplayRecipes(inputIngredients) {
             const normalizedInput = inputIngredients.map(item => item.toLowerCase());
+            // 修改為：只要有一個 keyIngredient 出現在 inputIngredients 就顯示
             const foundRecipes = mockRecipes.filter(recipe => {
-                // 檢查食譜的關鍵食材是否都在輸入食材中
-                return recipe.keyIngredients.every(keyIng => normalizedInput.includes(keyIng.toLowerCase()));
+                return recipe.keyIngredients.some(keyIng => normalizedInput.includes(keyIng.toLowerCase()));
             });
 
             recipesContainer.innerHTML = ''; // 清空現有食譜
