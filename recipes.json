@@ -92,17 +92,16 @@
     {
         "name": "番茄炒蛋",
         "keyIngredients": ["番茄", "雞蛋"],
-        "ingredients": ["番茄", "雞蛋", "蔥", "鹽", "糖", "食用油"],
-        "difficulty": "初級",
-        "time": "15分鐘",
-        "health": "高纖易消化、素食",
-        "intro": "經典家常菜，番茄的酸甜與雞蛋的滑嫩完美結合。",
-        "image": "https://via.placeholder.com/300x200?text=番茄炒蛋",
+        "ingredients": ["番茄", "雞蛋", "鹽", "油"],
+        "difficulty": "簡單",
+        "time": "10分鐘",
+        "health": "高蛋白",
+        "intro": "經典家常菜。",
+        "image": "tomato_egg.jpg",
         "steps": [
-            { "number": 1, "text": "番茄洗淨切塊，雞蛋打散加入少許鹽。", "image": "https://via.placeholder.com/400x300?text=準備番茄雞蛋", "timer": null },
-            { "number": 2, "text": "鍋中放油燒熱，倒入蛋液快速炒熟，盛出備用。", "image": "https://via.placeholder.com/400x300?text=炒蛋", "timer": null },
-            { "number": 3, "text": "鍋中再加少許油，放入番茄塊炒出汁，加入少許糖和鹽調味。", "image": "https://via.placeholder.com/400x300?text=炒番茄", "timer": null },
-            { "number": 4, "text": "倒入炒好的雞蛋，快速翻炒均勻，撒上蔥花即可。", "image": "https://via.placeholder.com/400x300?text=番茄雞蛋合炒", "timer": null }
+            { "number": 1, "text": "番茄切塊，雞蛋打散。", "image": "", "timer": "" },
+            { "number": 2, "text": "熱鍋加油，炒蛋至半熟取出。", "image": "", "timer": "" },
+            { "number": 3, "text": "炒番茄，加入蛋拌炒，加鹽調味。", "image": "", "timer": "" }
         ]
     },
     {
@@ -1047,154 +1046,274 @@
         ]
     },
     {
-        "name": "油燜春筍",
-        "keyIngredients": ["春筍", "醬油", "白糖"],
-        "ingredients": ["春筍", "醬油", "白糖", "食用油"],
-        "difficulty": "初級", 
-        "time": "20分鐘", 
-        "health": "清脆鮮美", 
-        "intro": "清脆爽口，鮮甜美味，江南春季名菜。", 
-        "image": "https://via.placeholder.com/300x200?text=油燜春筍",
-        "steps": [
-            { "number": 1, "text": "春筍去殼洗淨，切滾刀塊，焯水。", "image": "https://via.placeholder.com/400x300?text=處理春筍", "timer": null },
-            { "number": 2, "text": "鍋中放油，放入春筍塊翻炒。", "image": "https://via.placeholder.com/400x300?text=炒春筍", "timer": null },
-            { "number": 3, "text": "加入醬油、白糖和少量水，小火燜煮至湯汁濃稠即可。", "image": "https://via.placeholder.com/400x300?text=燜煮", "timer": "10分鐘" }
-        ]
-    },
-    {
-        "name": "海參盆蒸",
-        "keyIngredients": ["海參", "豬肉", "香菇"],
-        "ingredients": ["海參", "豬肉", "香菇", "高湯", "蠔油", "澱粉", "薑", "蔥"],
-        "difficulty": "高級", 
-        "time": "60分鐘", 
-        "health": "滋補", 
-        "intro": "海參軟糯，湯汁濃郁，湘菜。", 
-        "image": "https://via.placeholder.com/300x200?text=海參盆蒸",
-        "steps": [
-            { "number": 1, "text": "海參泡發切段。豬肉切片，香菇泡軟切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
-            { "number": 2, "text": "將海參、豬肉、香菇放入盆中，加薑蔥、高湯、蠔油、鹽調味。", "image": "https://via.placeholder.com/400x300?text=裝盆", "timer": null },
-            { "number": 3, "text": "上鍋蒸40分鐘至海參軟糯，勾芡即可。", "image": "https://via.placeholder.com/400x300?text=蒸煮", "timer": "40分鐘" }
-        ]
-    },
-    {
-        "name": "臘味合蒸",
-        "keyIngredients": ["臘肉", "臘腸", "臘魚"],
-        "ingredients": ["臘肉", "臘腸", "臘魚", "薑", "蒜", "豆豉", "料酒", "生抽", "食用油"],
-        "difficulty": "中級", 
-        "time": "40分鐘", 
-        "health": "鹹香濃郁", 
-        "intro": "多種臘味同蒸，香氣四溢，湖南家常菜。", 
-        "image": "https://via.placeholder.com/300x200?text=臘味合蒸",
-        "steps": [
-            { "number": 1, "text": "臘肉、臘腸、臘魚切片。薑蒜切末，豆豉備用。", "image": "https://via.placeholder.com/400x300?text=準備臘味", "timer": null },
-            { "number": 2, "text": "將所有臘味鋪在盤中，撒上薑蒜末、豆豉，淋上料酒和生抽。", "image": "https://via.placeholder.com/400x300?text=擺盤調味", "timer": null },
-            { "number": 3, "text": "上鍋蒸30分鐘至臘味熟透即可。", "image": "https://via.placeholder.com/400x300?text=蒸煮", "timer": "30分鐘" }
-        ]
-    },
-    {
-        "name": "走油豆豉扣肉",
-        "keyIngredients": ["五花肉", "豆豉"],
-        "ingredients": ["五花肉", "豆豉", "薑", "蒜", "料酒", "生抽", "老抽", "白糖", "食用油", "腐乳汁"],
-        "difficulty": "高級", 
-        "time": "180分鐘", 
-        "health": "鹹香軟糯", 
-        "intro": "肉質軟爛，豆豉鹹香，湘菜經典。", 
-        "image": "https://via.placeholder.com/300x200?text=走油豆豉扣肉",
-        "steps": [
-            { "number": 1, "text": "五花肉焯水後炸至表皮金黃，切片。豆豉、薑蒜切碎。", "image": "https://via.placeholder.com/400x300?text=處理肉豆豉", "timer": "30分鐘" },
-            { "number": 2, "text": "肉片與豆豉、薑蒜碎、料酒、生抽、老抽、白糖、腐乳汁混合調味，擺入碗中，上鍋蒸2-3小時。", "image": "https://via.placeholder.com/400x300?text=蒸煮", "timer": "120分鐘" },
-            { "number": 3, "text": "取出倒扣在盤中即可。", "image": "https://via.placeholder.com/400x300?text=扣肉", "timer": null }
-        ]
-    },
-    {
-        "name": "麻辣子雞",
-        "keyIngredients": ["雞肉", "乾辣椒", "花椒"],
-        "ingredients": ["雞肉", "乾辣椒", "花椒", "薑", "蒜", "料酒", "生抽", "白糖", "食用油", "鹽", "蔥"],
+        "name": "油爆雙脆",
+        "keyIngredients": ["豬肚", "雞胗"],
+        "ingredients": ["豬肚", "雞胗", "竹筍", "香菇", "蔥", "薑", "蒜", "料酒", "生抽", "白糖", "醋", "食用油", "澱粉"],
         "difficulty": "高級", 
         "time": "35分鐘", 
-        "health": "麻辣", 
-        "intro": "麻辣鮮香，雞肉酥脆，湘菜代表。", 
-        "image": "https://via.placeholder.com/300x200?text=麻辣子雞",
+        "health": "口感豐富", 
+        "intro": "豬肚雞胗脆嫩爽口，魯菜經典。", 
+        "image": "https://via.placeholder.com/300x200?text=油爆雙脆",
         "steps": [
-            { "number": 1, "text": "雞肉斬小塊，用料酒、鹽醃製。乾辣椒剪段，花椒備用。薑蒜切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": "15分鐘" },
-            { "number": 2, "text": "鍋中燒油，放入雞塊炸至金黃酥脆撈出。", "image": "https://via.placeholder.com/400x300?text=炸雞塊", "timer": "5分鐘" },
-            { "number": 3, "text": "鍋中留底油，放入乾辣椒、花椒、薑蒜爆香，倒入炸好的雞塊，快速翻炒，加少許糖調味，撒上蔥段即可。", "image": "https://via.placeholder.com/400x300?text=炒雞塊", "timer": null }
+            { "number": 1, "text": "豬肚、雞胗洗淨切片，焯水備用。竹筍、香菇切片。蔥薑蒜切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "鍋中燒油至高溫，快速放入豬肚、雞胗、竹筍、香菇爆炒。", "image": "https://via.placeholder.com/400x300?text=爆炒", "timer": null },
+            { "number": 3, "text": "加入料酒、生抽、白糖、醋、鹽調味，快速翻炒均勻勾芡即可。", "image": "https://via.placeholder.com/400x300?text=調味勾芡", "timer": null }
         ]
     },
     {
-        "name": "冰糖湘蓮",
-        "keyIngredients": ["蓮子", "冰糖"],
-        "ingredients": ["蓮子", "冰糖", "紅棗", "枸杞", "水"],
+        "name": "金陵丸子",
+        "keyIngredients": ["豬肉餡", "馬蹄"],
+        "ingredients": ["豬肉餡", "馬蹄", "雞蛋", "蔥", "薑", "醬油", "麻油", "澱粉", "食用油", "高湯"],
         "difficulty": "中級", 
-        "time": "60分鐘", 
-        "health": "滋補甜品", 
-        "intro": "清甜滋潤，蓮子軟糯，湖南傳統甜品。", 
-        "image": "https://via.placeholder.com/300x200?text=冰糖湘蓮",
+        "time": "40分鐘", 
+        "health": "鮮美", 
+        "intro": "丸子鬆軟，湯汁鮮美，南京特色。", 
+        "image": "https://via.placeholder.com/300x200?text=金陵丸子",
         "steps": [
-            { "number": 1, "text": "蓮子泡軟去芯。紅棗去核，枸杞洗淨。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
-            { "number": 2, "text": "將蓮子、冰糖、紅棗、枸杞放入鍋中，加足量水，小火慢燉40分鐘至蓮子軟糯。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "40分鐘" },
-            { "number": 3, "text": "即可享用。", "image": "https://via.placeholder.com/400x300?text=享用", "timer": null }
+            { "number": 1, "text": "豬肉餡加馬蹄碎、雞蛋、蔥薑末、醬油、麻油、澱粉調味，搓成丸子。", "image": "https://via.placeholder.com/400x300?text=搓丸子", "timer": null },
+            { "number": 2, "text": "丸子放入油鍋中炸至金黃。", "image": "https://via.placeholder.com/400x300?text=炸丸子", "timer": "10分鐘" },
+            { "number": 3, "text": "放入高湯中煮熟，加鹽調味即可。", "image": "https://via.placeholder.com/400x300?text=煮丸子", "timer": "20分鐘" }
         ]
     },
     {
-        "name": "臭豆腐",
-        "keyIngredients": ["臭豆腐", "辣椒油", "醬油"],
-        "ingredients": ["臭豆腐", "辣椒油", "醬油", "蒜蓉", "香菜", "食用油"],
+        "name": "白汁圓菜",
+        "keyIngredients": ["圓白菜", "高湯"],
+        "ingredients": ["圓白菜", "高湯", "蔥", "薑", "食用油", "鹽", "雞精"],
+        "difficulty": "初級", 
+        "time": "20分鐘", 
+        "health": "清淡", 
+        "intro": "清淡爽口，圓白菜的鮮甜與高湯融合。", 
+        "image": "https://via.placeholder.com/300x200?text=白汁圓菜",
+        "steps": [
+            { "number": 1, "text": "圓白菜洗淨切塊。蔥薑切末。", "image": "https://via.placeholder.com/400x300?text=準備圓白菜", "timer": null },
+            { "number": 2, "text": "鍋中放油，爆香蔥薑，放入圓白菜翻炒。", "image": "https://via.placeholder.com/400x300?text=炒菜", "timer": null },
+            { "number": 3, "text": "加入高湯，煮至圓白菜軟爛，加鹽、雞精調味即可。", "image": "https://via.placeholder.com/400x300?text=煮熟", "timer": "10分鐘" }
+        ]
+    },
+    {
+        "name": "清燉蟹粉獅子頭",
+        "keyIngredients": ["豬肉餡", "蟹肉", "蟹黃"],
+        "ingredients": ["豬肉餡", "蟹肉", "蟹黃", "蔥", "薑", "高湯", "鹽", "料酒", "澱粉"],
+        "difficulty": "特級", 
+        "time": "120分鐘", 
+        "health": "鮮美滋補", 
+        "intro": "肉丸鬆軟，蟹粉鮮香，淮揚菜經典。", 
+        "image": "https://via.placeholder.com/300x200?text=清燉蟹粉獅子頭",
+        "steps": [
+            { "number": 1, "text": "豬肉餡加蟹肉、蟹黃、蔥薑末、料酒、鹽、澱粉調味，搓成大丸子。", "image": "https://via.placeholder.com/400x300?text=製作獅子頭", "timer": null },
+            { "number": 2, "text": "將獅子頭放入砂鍋中，加入足量高湯，小火慢燉1.5-2小時。", "image": "https://via.placeholder.com/400x300?text=清燉", "timer": "90分鐘" },
+            { "number": 3, "text": "加鹽調味即可享用。", "image": "https://via.placeholder.com/400x300?text=調味", "timer": null }
+        ]
+    },
+    {
+        "name": "水晶肴蹄",
+        "keyIngredients": ["豬蹄", "硝"],
+        "ingredients": ["豬蹄", "硝", "鹽", "蔥", "薑", "八角", "桂皮", "花椒", "料酒"],
+        "difficulty": "特級", 
+        "time": "360分鐘", 
+        "health": "鹹鮮", 
+        "intro": "皮白肉嫩，晶瑩剔透，鎮江名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=水晶肴蹄",
+        "steps": [
+            { "number": 1, "text": "豬蹄洗淨，用硝和鹽醃製數小時，焯水。", "image": "https://via.placeholder.com/400x300?text=醃製豬蹄", "timer": "180分鐘" },
+            { "number": 2, "text": "將豬蹄與蔥薑、八角、桂皮、花椒、料酒一同放入鍋中，加足量水，大火燒開轉小火慢燉3-4小時。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "240分鐘" },
+            { "number": 3, "text": "取出放涼，壓實切片即可。", "image": "https://via.placeholder.com/400x300?text=切片", "timer": null }
+        ]
+    },
+    {
+        "name": "雞湯煮干絲",
+        "keyIngredients": ["豆腐乾絲", "雞湯"],
+        "ingredients": ["豆腐乾絲", "雞湯", "火腿絲", "雞蛋絲", "蝦仁", "薑絲", "食用油", "鹽", "蔥花"],
+        "difficulty": "中級", 
+        "time": "30分鐘", 
+        "health": "清淡鮮美", 
+        "intro": "豆腐乾絲吸飽雞湯精華，淮揚菜經典。", 
+        "image": "https://via.placeholder.com/300x200?text=雞湯煮干絲",
+        "steps": [
+            { "number": 1, "text": "豆腐乾絲用熱水燙軟。火腿、雞蛋切絲，蝦仁備用。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "鍋中燒熱雞湯，放入乾絲、火腿絲、蝦仁煮熟。", "image": "https://via.placeholder.com/400x300?text=煮干絲", "timer": "15分鐘" },
+            { "number": 3, "text": "加鹽調味，撒上雞蛋絲、蔥花和薑絲即可。", "image": "https://via.placeholder.com/400x300?text=調味", "timer": null }
+        ]
+    },
+    {
+        "name": "鳳尾蝦",
+        "keyIngredients": ["蝦仁", "麵包糠"],
+        "ingredients": ["蝦仁", "麵包糠", "雞蛋", "澱粉", "鹽", "胡椒粉", "食用油"],
+        "difficulty": "中級", 
+        "time": "20分鐘", 
+        "health": "香脆", 
+        "intro": "外酥裡嫩，形似鳳尾，炸物小吃。", 
+        "image": "https://via.placeholder.com/300x200?text=鳳尾蝦",
+        "steps": [
+            { "number": 1, "text": "蝦仁去蝦線，用鹽、胡椒粉、料酒醃製，裹上澱粉、蛋液、麵包糠。", "image": "https://via.placeholder.com/400x300?text=裹粉", "timer": null },
+            { "number": 2, "text": "鍋中燒油至七成熱，放入蝦仁炸至金黃酥脆即可。", "image": "https://via.placeholder.com/400x300?text=炸蝦仁", "timer": "5分鐘" }
+        ]
+    },
+    {
+        "name": "三套鴨",
+        "keyIngredients": ["鴨", "雞", "鴿"],
+        "ingredients": ["鴨", "雞", "鴿", "火腿", "香菇", "筍片", "高湯", "鹽", "料酒"],
+        "difficulty": "特級", 
+        "time": "300分鐘", 
+        "health": "滋補豪華", 
+        "intro": "鴨中套雞，雞中套鴿，湯鮮味濃，淮揚名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=三套鴨",
+        "steps": [
+            { "number": 1, "text": "鴨、雞、鴿分別去骨，套疊在一起。", "image": "https://via.placeholder.com/400x300?text=套疊", "timer": null },
+            { "number": 2, "text": "與火腿、香菇、筍片一同放入大鍋中，加足量高湯、料酒、鹽，大火燒開轉小火慢燉4-5小時。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "240分鐘" },
+            { "number": 3, "text": "取出切塊即可享用。", "image": "https://via.placeholder.com/400x300?text=切塊", "timer": null }
+        ]
+    },
+    {
+        "name": "無錫肉骨頭",
+        "keyIngredients": ["豬肉骨", "醬油", "冰糖"],
+        "ingredients": ["豬肉骨", "醬油", "冰糖", "料酒", "蔥", "薑", "八角", "桂皮", "食用油", "水"],
+        "difficulty": "中級", 
+        "time": "90分鐘", 
+        "health": "鹹甜軟爛", 
+        "intro": "骨肉軟爛，鹹甜適中，無錫地方名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=無錫肉骨頭",
+        "steps": [
+            { "number": 1, "text": "豬肉骨斬塊，洗淨焯水。蔥薑切片。", "image": "https://via.placeholder.com/400x300?text=處理肉骨", "timer": null },
+            { "number": 2, "text": "鍋中放油，炒香蔥薑，放入肉骨翻炒。", "image": "https://via.placeholder.com/400x300?text=炒肉骨", "timer": null },
+            { "number": 3, "text": "加入醬油、冰糖、料酒、八角、桂皮、足量水，大火燒開轉小火慢燉1小時。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "60分鐘" },
+            { "number": 4, "text": "大火收汁即可。", "image": "https://via.placeholder.com/400x300?text=收汁", "timer": null }
+        ]
+    },
+    {
+        "name": "陸稿薦醬豬頭肉",
+        "keyIngredients": ["豬頭肉", "醬油", "香料"],
+        "ingredients": ["豬頭肉", "醬油", "香料", "冰糖", "料酒", "蔥", "薑", "八角", "桂皮", "丁香", "小茴香", "草果", "水"],
+        "difficulty": "高級", 
+        "time": "180分鐘", 
+        "health": "鹹香", 
+        "intro": "肉質軟爛，醬香濃郁，蘇州老字號名點。", 
+        "image": "https://via.placeholder.com/300x200?text=陸稿薦醬豬頭肉",
+        "steps": [
+            { "number": 1, "text": "豬頭肉處理乾淨，焯水。", "image": "https://via.placeholder.com/400x300?text=處理豬頭肉", "timer": null },
+            { "number": 2, "text": "將豬頭肉與醬油、冰糖、料酒、蔥薑和各種香料一同放入鍋中，加足量水，大火燒開轉小火慢燉2-3小時。", "image": "https://via.placeholder.com/400x300?text=醬製", "timer": "150分鐘" },
+            { "number": 3, "text": "放涼後切片即可享用。", "image": "https://via.placeholder.com/400x300?text=切片", "timer": null }
+        ]
+    },
+    {
+        "name": "西湖醋魚",
+        "keyIngredients": ["草魚", "醋", "糖"],
+        "ingredients": ["草魚", "醋", "糖", "醬油", "料酒", "薑", "澱粉", "食用油"],
+        "difficulty": "中級", 
+        "time": "30分鐘", 
+        "health": "酸甜鮮美", 
+        "intro": "魚肉鮮嫩，酸甜可口，杭州名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=西湖醋魚",
+        "steps": [
+            { "number": 1, "text": "草魚處理乾淨，從中片開。", "image": "https://via.placeholder.com/400x300?text=處理草魚", "timer": null },
+            { "number": 2, "text": "將魚放入沸水中煮熟，撈出擺盤。", "image": "https://via.placeholder.com/400x300?text=煮魚", "timer": "10分鐘" },
+            { "number": 3, "text": "鍋中放入醋、糖、醬油、料酒、薑末煮開，勾芡，淋在魚身上即可。", "image": "https://via.placeholder.com/400x300?text=淋汁", "timer": null }
+        ]
+    },
+    {
+        "name": "東坡肉",
+        "keyIngredients": ["五花肉", "醬油", "冰糖"],
+        "ingredients": ["五花肉", "醬油", "冰糖", "料酒", "蔥", "薑", "食用油", "水"],
+        "difficulty": "高級", 
+        "time": "180分鐘", 
+        "health": "肥而不膩", 
+        "intro": "肉質軟爛，入口即化，杭州名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=東坡肉",
+        "steps": [
+            { "number": 1, "text": "五花肉切塊，焯水。", "image": "https://via.placeholder.com/400x300?text=處理五花肉", "timer": null },
+            { "number": 2, "text": "鍋中放油，炒香蔥薑，放入五花肉塊翻炒。", "image": "https://via.placeholder.com/400x300?text=炒肉塊", "timer": null },
+            { "number": 3, "text": "加入醬油、冰糖、料酒、足量水，大火燒開轉小火慢燉1.5-2小時，直至肉軟爛入味。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "120分鐘" },
+            { "number": 4, "text": "大火收汁即可。", "image": "https://via.placeholder.com/400x300?text=收汁", "timer": null }
+        ]
+    },
+    {
+        "name": "荷葉粉蒸肉",
+        "keyIngredients": ["五花肉", "糯米粉", "荷葉"],
+        "ingredients": ["五花肉", "糯米粉", "荷葉", "醬油", "料酒", "腐乳汁", "花椒粉", "薑", "蔥"],
+        "difficulty": "中級", 
+        "time": "90分鐘", 
+        "health": "軟糯香濃", 
+        "intro": "肉質軟爛，米粉香糯，荷葉清香。", 
+        "image": "https://via.placeholder.com/300x200?text=荷葉粉蒸肉",
+        "steps": [
+            { "number": 1, "text": "五花肉切片，用醬油、料酒、腐乳汁、花椒粉、薑蔥醃製，裹上糯米粉。", "image": "https://via.placeholder.com/400x300?text=醃製裹粉", "timer": "30分鐘" },
+            { "number": 2, "text": "荷葉鋪底，將裹好粉的肉片擺入，上鍋蒸1小時。", "image": "https://via.placeholder.com/400x300?text=蒸肉", "timer": "60分鐘" },
+            { "number": 3, "text": "蒸熟後即可享用。", "image": "https://via.placeholder.com/400x300?text=蒸熟", "timer": null }
+        ]
+    },
+    {
+        "name": "西湖莼菜湯",
+        "keyIngredients": ["莼菜", "雞蛋", "火腿"],
+        "ingredients": ["莼菜", "雞蛋", "火腿", "高湯", "鹽", "雞精", "香油"],
         "difficulty": "初級", 
         "time": "15分鐘", 
-        "health": "地方小吃", 
-        "intro": "外酥裡嫩，香氣獨特，湖南長沙名小吃。", 
-        "image": "https://via.placeholder.com/300x200?text=臭豆腐",
+        "health": "清淡鮮美", 
+        "intro": "湯清味醇，莼菜滑嫩，西湖名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=西湖莼菜湯",
         "steps": [
-            { "number": 1, "text": "臭豆腐切塊。", "image": "https://via.placeholder.com/400x300?text=準備臭豆腐", "timer": null },
-            { "number": 2, "text": "鍋中燒油至七成熱，放入臭豆腐炸至外皮酥脆。", "image": "https://via.placeholder.com/400x300?text=炸臭豆腐", "timer": "5分鐘" },
-            { "number": 3, "text": "撈出瀝油，淋上辣椒油、醬油、蒜蓉、香菜即可。", "image": "https://via.placeholder.com/400x300?text=調味", "timer": null }
+            { "number": 1, "text": "莼菜洗淨。雞蛋打散，火腿切絲。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "高湯煮開，放入莼菜和火腿絲。", "image": "https://via.placeholder.com/400x300?text=煮湯", "timer": null },
+            { "number": 3, "text": "淋入蛋液，加鹽、雞精調味，淋少許香油即可。", "image": "https://via.placeholder.com/400x300?text=調味", "timer": null }
         ]
     },
     {
-        "name": "紅燒寒菌",
-        "keyIngredients": ["寒菌", "豬肉"],
-        "ingredients": ["寒菌", "豬肉", "薑", "蒜", "醬油", "料酒", "食用油", "水"],
+        "name": "龍井蝦仁",
+        "keyIngredients": ["蝦仁", "龍井茶"],
+        "ingredients": ["蝦仁", "龍井茶", "雞蛋清", "澱粉", "料酒", "鹽", "食用油"],
         "difficulty": "中級", 
+        "time": "20分鐘", 
+        "health": "清淡鮮美", 
+        "intro": "蝦仁Q彈，茶香清雅，杭州名菜。", 
+        "image": "https://via.placeholder.com/300x200?text=龍井蝦仁",
+        "steps": [
+            { "number": 1, "text": "蝦仁去蝦線，用鹽、料酒、蛋清、澱粉醃製。龍井茶用熱水泡開取茶湯。", "image": "https://via.placeholder.com/400x300?text=準備蝦仁茶葉", "timer": null },
+            { "number": 2, "text": "鍋中放油，滑炒蝦仁至變色。", "image": "https://via.placeholder.com/400x300?text=炒蝦仁", "timer": null },
+            { "number": 3, "text": "倒入茶湯和茶葉，快速翻炒均勻即可。", "image": "https://via.placeholder.com/400x300?text=炒熟", "timer": null }
+        ]
+    },
+    {
+        "name": "虎跑素火腿",
+        "keyIngredients": ["豆腐乾", "香菇", "金針菇"],
+        "ingredients": ["豆腐乾", "香菇", "金針菇", "醬油", "白糖", "素蠔油", "麻油", "薑", "食用油"],
+        "difficulty": "中級", 
+        "time": "40分鐘", 
+        "health": "素食", 
+        "intro": "形似火腿，味道鹹鮮，杭州素菜。", 
+        "image": "https://via.placeholder.com/300x200?text=虎跑素火腿",
+        "steps": [
+            { "number": 1, "text": "豆腐乾、香菇、金針菇切絲。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
+            { "number": 2, "text": "鍋中放油，炒香薑絲，放入豆腐乾絲、香菇絲、金針菇絲翻炒。", "image": "https://via.placeholder.com/400x300?text=炒素菜", "timer": null },
+            { "number": 3, "text": "加入醬油、白糖、素蠔油調味，炒至入味即可。", "image": "https://via.placeholder.com/400x300?text=調味", "timer": null }
+        ]
+    },
+    {
+        "name": "香酥燜肉",
+        "keyIngredients": ["五花肉", "麵粉"],
+        "ingredients": ["五花肉", "麵粉", "雞蛋", "料酒", "生抽", "鹽", "五香粉", "食用油"],
+        "difficulty": "中級", 
+        "time": "60分鐘", 
+        "health": "香酥", 
+        "intro": "外皮酥脆，肉質軟爛，風味獨特。", 
+        "image": "https://via.placeholder.com/300x200?text=香酥燜肉",
+        "steps": [
+            { "number": 1, "text": "五花肉切塊，用料酒、生抽、鹽、五香粉醃製。", "image": "https://via.placeholder.com/400x300?text=醃製肉", "timer": "30分鐘" },
+            { "number": 2, "text": "裹上麵粉和蛋液，放入油鍋中炸至金黃酥脆。", "image": "https://via.placeholder.com/400x300?text=炸肉", "timer": "10分鐘" },
+            { "number": 3, "text": "炸好的肉塊放入鍋中，加少量水燜煮至軟爛入味即可。", "image": "https://via.placeholder.com/400x300?text=燜煮", "timer": "15分鐘" }
+        ]
+    },
+    {
+        "name": "蝦爆鱔背",
+        "keyIngredients": ["鱔魚", "蝦仁"],
+        "ingredients": ["鱔魚", "蝦仁", "蔥", "薑", "蒜", "料酒", "生抽", "白糖", "澱粉", "食用油"],
+        "difficulty": "高級", 
         "time": "30分鐘", 
         "health": "鮮美", 
-        "intro": "菌菇鮮香，肉質軟爛，湖南特色菜。", 
-        "image": "https://via.placeholder.com/300x200?text=紅燒寒菌",
+        "intro": "鱔魚軟嫩，蝦仁Q彈，味道鮮美。", 
+        "image": "https://via.placeholder.com/300x200?text=蝦爆鱔背",
         "steps": [
-            { "number": 1, "text": "寒菌洗淨。豬肉切片。薑蒜切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
-            { "number": 2, "text": "鍋中放油，炒香薑蒜，放入豬肉片炒香。", "image": "https://via.placeholder.com/400x300?text=炒肉", "timer": null },
-            { "number": 3, "text": "加入寒菌翻炒，加醬油、料酒和適量水，紅燒至入味即可。", "image": "https://via.placeholder.com/400x300?text=紅燒", "timer": "15分鐘" }
-        ]
-    },
-    {
-        "name": "炒血鴨",
-        "keyIngredients": ["鴨肉", "鴨血", "辣椒"],
-        "ingredients": ["鴨肉", "鴨血", "辣椒", "薑", "蒜", "料酒", "生抽", "食用油", "米酒"],
-        "difficulty": "高級", 
-        "time": "40分鐘", 
-        "health": "風味獨特", 
-        "intro": "鴨肉鮮辣，鴨血軟糯，湖南特色菜。", 
-        "image": "https://via.placeholder.com/300x200?text=炒血鴨",
-        "steps": [
-            { "number": 1, "text": "鴨肉斬塊，洗淨焯水。鴨血切塊。辣椒切段。薑蒜切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
-            { "number": 2, "text": "鍋中放油，放入鴨肉塊煸炒至出油。", "image": "https://via.placeholder.com/400x300?text=煸炒鴨肉", "timer": null },
-            { "number": 3, "text": "加入薑蒜、辣椒炒香，加料酒、生抽、米酒和適量水，燜煮至鴨肉熟透。", "image": "https://via.placeholder.com/400x300?text=燜煮", "timer": "20分鐘" },
-            { "number": 4, "text": "最後倒入鴨血，快速翻炒均勻即可。", "image": "https://via.placeholder.com/400x300?text=炒血鴨", "timer": null }
-        ]
-    },
-    {
-        "name": "湘西酸肉",
-        "keyIngredients": ["豬肉", "酸菜", "辣椒"],
-        "ingredients": ["豬肉", "酸菜", "辣椒", "薑", "蒜", "花椒", "食用油", "鹽"],
-        "difficulty": "中級", 
-        "time": "30分鐘", 
-        "health": "酸辣", 
-        "intro": "酸辣開胃，肉質彈牙，湘西特色。", 
-        "image": "https://via.placeholder.com/300x200?text=湘西酸肉",
-        "steps": [
-            { "number": 1, "text": "豬肉切片，酸菜洗淨切段。辣椒切段。薑蒜切片。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": null },
-            { "number": 2, "text": "鍋中放油，炒香薑蒜、花椒、辣椒，放入豬肉片炒香。", "image": "https://via.placeholder.com/400x300?text=炒肉", "timer": null },
-            { "number": 3, "text": "加入酸菜翻炒，加鹽調味，炒至入味即可。", "image": "https://via.placeholder.com/400x300?text=炒酸肉", "timer": "15分鐘" }
+            { "number": 1, "text": "鱔魚宰殺洗淨取鱔背，切段。蝦仁去蝦線。", "image": "https://via.placeholder.com/400x300?text=處理食材", "timer": null },
+            { "number": 2, "text": "鍋中放油，爆炒鱔背和蝦仁至變色。", "image": "https://via.placeholder.com/400x300?text=爆炒", "timer": null },
+            { "number": 3, "text": "加入蔥薑蒜、料酒、生抽、白糖調味，快速翻炒均勻即可。", "image": "https://via.placeholder.com/400x300?text=炒熟", "timer": null }
         ]
     }
 ]
