@@ -741,15 +741,12 @@ mockRecipes = await response.json();
                     recognizedText = data.choices[0].message.content.trim();
                 }
 
-                // 直接跳轉到相關食譜，不顯示彈窗
+                // 不顯示任何彈窗，直接處理
                 if (recognizedText && recognizedText !== '無') {
                     const ingredients = recognizedText.split('、').map(item => item.trim()).filter(Boolean);
                     ingredients.forEach(addIngredient);
-                    showTemporaryMessage('識別完成，正在為您尋找食譜...');
-                    setTimeout(() => {
-                        filterAndDisplayRecipes(ingredients);
-                        hideLoading();
-                    }, 1000); // 可依需求調整延遲
+                    filterAndDisplayRecipes(ingredients);
+                    hideLoading();
                 } else {
                     alert('沒有識別到食材，請嘗試重新掃描或手動輸入。');
                     hideLoading();
