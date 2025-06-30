@@ -1114,6 +1114,26 @@ function filterAndDisplayRecipes(inputIngredients) {
                 commonIngredientsTagsContainer.appendChild(tag);
             });
         }
+
+        function generateShoppingList() {
+    if (!currentRecipe) {
+        alert('請先選擇一個食譜！');
+        return;
+    }
+    const shoppingList = currentRecipe.ingredients || [];
+    const container = document.getElementById('shopping-list-container');
+    container.innerHTML = '';
+    if (shoppingList.length === 0) {
+        container.innerHTML = '<li>無需購買食材。</li>';
+    } else {
+        shoppingList.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            container.appendChild(li);
+        });
+    }
+    showPage('shopping-list-page');
+}
     </script>
 </body>
 </html>
