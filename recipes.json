@@ -91,7 +91,7 @@
     },
     {
         "name": "番茄炒蛋",
-        "keyIngredients": ["番茄", "雞蛋"],
+        "keyIngredients": ["番茄", "tomato", "雞蛋", "egg"],
         "ingredients": ["番茄", "雞蛋", "鹽", "油"],
         "difficulty": "簡單",
         "time": "10分鐘",
@@ -99,9 +99,9 @@
         "intro": "經典家常菜。",
         "image": "tomato_egg.jpg",
         "steps": [
-            { "number": 1, "text": "番茄切塊，雞蛋打散。", "image": "", "timer": "" },
-            { "number": 2, "text": "熱鍋加油，炒蛋至半熟取出。", "image": "", "timer": "" },
-            { "number": 3, "text": "炒番茄，加入蛋拌炒，加鹽調味。", "image": "", "timer": "" }
+            { "number": 1, "text": "番茄切塊，雞蛋打散。", "image": "tomato_egg_step1.jpg", "timer": "" },
+            { "number": 2, "text": "熱鍋加油，炒蛋至半熟取出。", "image": "tomato_egg_step2.jpg", "timer": "" },
+            { "number": 3, "text": "炒番茄，加入蛋拌炒，加鹽調味。", "image": "tomato_egg_step3.jpg", "timer": "" }
         ]
     },
     {
@@ -663,7 +663,7 @@
         "intro": "閩菜之首，匯集山珍海味，湯汁濃郁，營養豐富。", 
         "image": "https://via.placeholder.com/300x200?text=佛跳牆",
         "steps": [
-            { "number": 1, "text": "各種海鮮乾貨提前泡發處理好。雞肉、排骨、豬肚、鴨肉等肉類焯水備用。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": "240分鐘" },
+            { "number":  1, "text": "各種海鮮乾貨提前泡發處理好。雞肉、排骨、豬肚、鴨肉等肉類焯水備用。", "image": "https://via.placeholder.com/400x300?text=準備食材", "timer": "240分鐘" },
             { "number": 2, "text": "將所有食材放入大瓦罈中，加入足量高湯，料酒、鹽、糖調味。", "image": "https://via.placeholder.com/400x300?text=裝罈", "timer": null },
             { "number": 3, "text": "用荷葉封口，文火慢燉至少4-6小時，直至食材軟爛，湯汁濃稠即可。", "image": "https://via.placeholder.com/400x300?text=燉煮", "timer": "360分鐘" }
         ]
