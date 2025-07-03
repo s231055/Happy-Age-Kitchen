@@ -533,11 +533,71 @@ const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
     "time": "10分鐘",
     "health": "高蛋白",
     "intro": "經典家常菜。",
-    "image": "tomato_egg.jpg",
+    "image": "images/tomato_egg.jpg",
     "steps": [
-      { "number": 1, "text": "番茄切塊，雞蛋打散。", "image": "", "timer": "" },
-      { "number": 2, "text": "熱鍋加油，炒蛋至半熟取出。", "image": "", "timer": "" },
-      { "number": 3, "text": "炒番茄，加入蛋拌炒，加鹽調味。", "image": "", "timer": "" }
+      { "number": 1, "text": "番茄切塊，雞蛋打散。", "image": "images/tomato_egg_step1.jpg", "timer": "" },
+      { "number": 2, "text": "熱鍋加油，炒蛋至半熟取出。", "image": "images/tomato_egg_step2.jpg", "timer": "" },
+      { "number": 3, "text": "炒番茄，加入蛋拌炒，加鹽調味。", "image": "images/tomato_egg_step3.jpg", "timer": "" }
+    ]
+  },
+  {
+    "name": "蒸蛋",
+    "keyIngredients": ["雞蛋", "蛋", "egg"],
+    "ingredients": ["雞蛋", "水", "鹽", "蔥花"],
+    "difficulty": "簡單",
+    "time": "15分鐘",
+    "health": "滑嫩易吞",
+    "intro": "口感滑嫩，適合牙口不佳者。",
+    "image": "images/steamed_egg.jpg",
+    "steps": [
+      { "number": 1, "text": "雞蛋打散，加水與鹽攪拌均勻。", "image": "images/steamed_egg_step1.jpg", "timer": "" },
+      { "number": 2, "text": "過濾蛋液，倒入碗中，蓋上保鮮膜。", "image": "images/steamed_egg_step2.jpg", "timer": "" },
+      { "number": 3, "text": "大火蒸8-10分鐘，撒蔥花即可。", "image": "images/steamed_egg_step3.jpg", "timer": "" }
+    ]
+  },
+  {
+    "name": "豆腐羹",
+    "keyIngredients": ["豆腐", "tofu"],
+    "ingredients": ["嫩豆腐", "高湯", "蛋液", "鹽", "蔥花"],
+    "difficulty": "簡單",
+    "time": "15分鐘",
+    "health": "高蛋白、易消化",
+    "intro": "嫩豆腐配蛋花，入口即化，適合長者。",
+    "image": "images/tofu_soup.jpg",
+    "steps": [
+      { "number": 1, "text": "嫩豆腐切小塊，放入高湯中煮沸。", "image": "images/tofu_soup_step1.jpg", "timer": "" },
+      { "number": 2, "text": "倒入蛋液攪拌，煮至蛋花浮起。", "image": "images/tofu_soup_step2.jpg", "timer": "" },
+      { "number": 3, "text": "加鹽調味，撒蔥花即可。", "image": "images/tofu_soup_step3.jpg", "timer": "" }
+    ]
+  },
+  {
+    "name": "南瓜粥",
+    "keyIngredients": ["南瓜", "米", "pumpkin", "rice"],
+    "ingredients": ["南瓜", "大米", "水", "鹽"],
+    "difficulty": "簡單",
+    "time": "40分鐘",
+    "health": "軟爛易吞",
+    "intro": "南瓜與米熬煮成粥，香甜軟糯。",
+    "image": "images/pumpkin_porridge.jpg",
+    "steps": [
+      { "number": 1, "text": "南瓜去皮切小塊，大米洗淨。", "image": "images/pumpkin_porridge_step1.jpg", "timer": "" },
+      { "number": 2, "text": "鍋中加水，放入南瓜和大米，大火煮沸。", "image": "images/pumpkin_porridge_step2.jpg", "timer": "" },
+      { "number": 3, "text": "轉小火慢熬30分鐘至軟爛，加鹽調味。", "image": "images/pumpkin_porridge_step3.jpg", "timer": "" }
+    ]
+  },
+  {
+    "name": "魚肉蒸泥",
+    "keyIngredients": ["魚肉", "fish"],
+    "ingredients": ["魚肉", "薑片", "鹽", "水"],
+    "difficulty": "簡單",
+    "time": "25分鐘",
+    "health": "高蛋白、易咀嚼",
+    "intro": "魚肉蒸熟打泥，適合吞嚥困難者。",
+    "image": "images/fish_puree.jpg",
+    "steps": [
+      { "number": 1, "text": "魚肉去刺切塊，加薑片蒸熟。", "image": "images/fish_puree_step1.jpg", "timer": "" },
+      { "number": 2, "text": "取出魚肉，去薑片，加少量水打成泥。", "image": "images/fish_puree_step2.jpg", "timer": "" },
+      { "number": 3, "text": "加鹽調味即可食用。", "image": "images/fish_puree_step3.jpg", "timer": "" }
     ]
   }
 ]; // 先宣告為空陣列
