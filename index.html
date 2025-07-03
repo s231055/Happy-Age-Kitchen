@@ -392,6 +392,12 @@
     </header>
 
     <main class="container">
+        <!-- 請加在 <main class="container"> 最上方，scan-page section 前 -->
+<div style="text-align:center; margin-bottom:20px;">
+    <input id="keyword-search-input" type="text" placeholder="輸入關鍵詞搜尋食譜，如：蛋、豆腐、辣" style="font-size:1.3em; padding:10px; width:60%; border-radius:8px; border:1px solid #ccc;">
+    <button onclick="searchByKeyword()" style="font-size:1.2em; padding:10px 20px; border-radius:8px;">🔍 搜尋</button>
+</div>
+
         <section id="scan-page" class="section active">
             <h1>智慧食譜助手</h1>
             <button id="start-camera-btn">
@@ -1133,6 +1139,55 @@ function filterAndDisplayRecipes(inputIngredients) {
         });
     }
     showPage('shopping-list-page');
+}
+
+function searchRecipes(keyword) {
+    keyword = keyword.trim().toLowerCase();
+    if (!keyword) return [];
+
+    return mockRecipes.filter(recipe => {
+        // 比對名稱、介紹、主要食材、所有食材
+        return (
+            recipe.name.toLowerCase().includes(keyword) ||
+            recipe.intro.toLowerCase().includes(keyword) ||
+            (recipe.keyIngredients && recipe.keyIngredients.some(k => k.toLowerCase().includes(keyword))) ||
+            (recipe.ingredients && recipe.ingredients.some(i => i.toLowerCase().includes(keyword)))
+        );
+    });
+}
+
+// 關鍵詞搜尋食譜
+function searchByKeyword() {
+    const input = document.getElementById('keyword-search-input').value.trim();
+    if (!input) {
+        alert('請輸入關鍵詞！');
+        return;
+    }
+    const found = searchRecipes(input);
+    recipesContainer.innerHTML = '';
+    if (found.length > 0) {
+        found.forEach(recipe => {
+            const card = document.createElement('div');
+            card.classList.add('recipe-card');
+            card.innerHTML = `
+                <img src="${recipe.image}" alt="${recipe.name}">
+                <div class="recipe-card-content">
+                    <h3>${recipe.name}</h3>
+                    <p><strong>難度:</strong> ${recipe.difficulty}</p>
+                    <p><strong>時間:</strong> ${recipe.time}</p>
+                    <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
+                    <div class="tags">
+                        ${recipe.keyIngredients.map(ing => `<span>${ing}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+            card.onclick = () => showRecipeDetail(recipe);
+            recipesContainer.appendChild(card);
+        });
+        showPage('recipe-list-page');
+    } else {
+        alert('沒有找到相關食譜！');
+    }
 }
     </script>
 </body>
