@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧食譜助手</title>
+    <style>
+        /* CSS 樣式保持不變，與之前提供的一致 */
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* 淺灰色背景 */
+            color: #333; /* 深灰色文字 */
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #0056b3; /* 標題藍色 */
+            text-align: center;
+            font-size: 2.5em; /* 大字體 */
+            margin-bottom: 20px;
+        }
+        button {
+            display: block;
+            width: 80%;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px 30px;
+            font-size: 1.8em; /* 大按鈕文字 */
+            background-color: #28a745; /* 綠色按鈕 */
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        .section {
+            display: none; /* 預設隱藏，透過 JS 顯示 */
+            padding: 20px 0;
+        }
+        .section.active {
+            display: block; /* 顯示當前活躍的區塊 */
+        }
+
+        /* 掃描介面樣式 */
+        #scan-area {
+            min-height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #666;
+            position: relative; /* 用於定位攝像頭影像 */
+            overflow: hidden; /* 防止攝像頭影像溢出 */
+            background-color: #e9ecef; /* 掃描區域背景 */
+            border-radius: 10px;
+        }
+        #scan-area video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 填充整個區域，可能裁剪 */
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1; /* 確保在引導文字下方 */
+            border-radius: 10px;
+        }
+        #scan-area .overlay-text {
+            position: relative; /* 確保文字在攝像頭上方 */
+            z-index: 2;
+            background-color: rgba(255, 255, 255, 0.7); /* 半透明背景，讓文字更清晰 */
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        #scan-area .icon {
+            font-size: 4em; /* 大圖示 */
+            margin-bottom: 10px;
+        }
+        #identified-ingredients {
+            margin-top: 20px;
+            font-size: 1.4em;
+            text-align: center;
+            color: #0056b3;
+            font-weight: bold;
+        }
+        .ingredient-input-group {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .ingredient-input-group label {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .ingredient-input-group input[type="text"] {
+            width: 70%;
+            padding: 15px;
+            font-size: 1.3em;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .ingredient-tags {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .ingredient-tag {
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .ingredient-tag:hover {
+            background-color: #d1d8df;
+        }
+
+
+        /* 食譜列表樣式 */
+        .recipe-list {
+            display: grid;
+            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        .recipe-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+        .recipe-card:hover {
+            transform: translateY(-5px);
+        }
+        .recipe-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid #ddd;
+        }
+        .recipe-card-content {
+            padding: 15px;
+        }
+        .recipe-card h3 {
+            font-size: 1.6em;
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #333;
+            text-align: left;
+        }
+        .recipe-card p {
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .recipe-card .tags span {
+            display: inline-block;
+            background-color: #e0f7fa;
+            color: #00796b;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        /* 食譜步驟樣式 */
+        #recipe-title-display {
+            font-size: 2.2em;
+            text-align: center;
+            color: #0056b3;
+            margin-bottom: 30px;
+        }
+        .recipe-info {
+            font-size: 1.3em;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        .recipe-info p strong {
+            color: #666;
+        }
+
+        .recipe-step {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .step-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #e67e22; /* 橙色數字 */
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .step-image img {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: contain; /* 圖片完整顯示 */
+            display: block;
+            margin: 0 auto 20px auto;
+            border-radius: 8px;
+        }
+        .step-text {
+            font-size: 1.8em; /* 烹飪步驟大字體 */
+            color: #333;
+            text-align: center;
+        }
+        .step-timer {
+            font-size: 1.5em;
+            color: #c0392b; /* 紅色計時器 */
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+        .navigation-buttons button {
+            width: 45%;
+            margin: 0;
+        }
+        .nav-back { background-color: #6c757d; }
+        .nav-back:hover { background-color: #5a6268; }
+        .nav-next { background-color: #007bff; }
+        .nav-next:hover { background-color: #0056b3; }
+
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #007bff;
+            color: white;
+            font-size: 1.5em;
+        }
+        .top-nav button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8em;
+            cursor: pointer;
+            margin: 0;
+            padding: 0 10px;
+            width: auto;
+            max-width: none;
+            box-shadow: none;
+        }
+        .top-nav button:hover {
+            opacity: 0.8;
+        }
+        .top-nav .title {
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        /* 收藏和購物清單按鈕 */
+        .bottom-actions {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+        .bottom-actions button {
+            width: 48%;
+            margin: 0;
+            padding: 15px;
+            font-size: 1.5em;
+        }
+        .favorite-btn { background-color: #ffc107; color: #333;}
+        .favorite-btn:hover { background-color: #e0a800;}
+        .shopping-btn { background-color: #17a2b8; }
+        .shopping-btn:hover { background-color: #138496; }
+
+        /* 確認識別結果彈窗 */
+        #recognition-modal {
+            display: none; /* 預設隱藏 */
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4); /* 半透明黑色背景 */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .modal-content h3 {
+            font-size: 1.8em;
+            color: #0056b3;
+            margin-bottom: 20px;
+        }
+        .modal-content .recognized-items {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+        .modal-content .modal-buttons button {
+            display: inline-block;
+            width: 45%;
+            margin: 0 5px;
+            padding: 15px 25px;
+            font-size: 1.5em;
+        }
+        .modal-confirm-btn { background-color: #28a745; }
+        .modal-confirm-btn:hover { background-color: #218838; }
+        .modal-re-scan-btn { background-color: #ffc107; color: #333;}
+        .modal-re-scan-btn:hover { background-color: #e0a800;}
+
+        /* 加載指示器 */
+        #loading-indicator {
+            display: none;
+            position: fixed;
+            z-index: 1002;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            font-size: 2em;
+        }
+        .spinner {
+            border: 8px solid rgba(255,255,255,0.3);
+            border-top: 8px solid #fff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="top-nav" id="top-navbar" style="display: none;">
+        <button onclick="goBack()">&lt;</button>
+        <div class="title" id="nav-title">食譜名稱</div>
+        <button onclick="toggleVoiceGuide()">🔊</button>
+    </header>
+
+    <main class="container">
+        <section id="scan-page" class="section active">
+            <h1>智慧食譜助手</h1>
+            <button id="start-camera-btn">
+                開啟攝像頭掃描
+                <div class="icon">📸</div>
+            </button>
+
+            <div id="scan-area">
+                <video id="camera-stream" autoplay playsinline style="display: none;"></video>
+                <div class="overlay-text" id="scan-overlay-text">
+                    <span class="icon">💡</span>
+                    <p>請將食材對準鏡頭，然後點擊拍照</p>
+                    <p>保持光線充足與影像清晰</p>
+                </div>
+            </div>
+            <button id="take-photo-btn" style="display: none;">
+                <div class="icon">📷</div>
+                拍照識別食材
+            </button>
+            <canvas id="canvas" style="display: none;"></canvas> <div id="identified-ingredients" style="display: none;">
+                <p>已識別食材：<span id="ingredients-display"></span></p>
+                <button id="clear-identified-btn" style="background-color: #dc3545; margin-top: 10px; width: auto; padding: 10px 20px; font-size: 1.2em; max-width: none;">清空已識別食材</button>
+            </div>
+
+            <button id="confirm-ingredients-btn" style="display: none;">確認食材，尋找食譜</button>
+
+            <div class="ingredient-input-group">
+                <label for="manual-ingredient-input">手動輸入食材 (若掃描不便)</label>
+                <input type="text" id="manual-ingredient-input" placeholder="例如：雞蛋、米飯">
+                <button onclick="addManualIngredient()">加入食材</button>
+            </div>
+
+            <div class="ingredient-input-group">
+                <label>或從常用食材中選擇：</label>
+                <div class="ingredient-tags" id="common-ingredients-tags">
+                    </div>
+                <button id="find-recipes-manual-btn">查找食譜</button>
+            </div>
+        </section>
+
+        <section id="recipe-list-page" class="section">
+            <h2>推薦食譜</h2>
+            <div class="recipe-list" id="recipes-container">
+                </div>
+        </section>
+
+        <section id="recipe-detail-page" class="section">
+            <h2 id="recipe-title-display"></h2>
+            <div class="recipe-info">
+                <p><strong>所需食材：</strong><span id="recipe-ingredients-display"></span></p>
+                <p><strong>烹飪難度：</strong><span id="recipe-difficulty-display"></span></p>
+                <p><strong>預計時間：</strong><span id="recipe-time-display"></span></p>
+                <p><strong>健康提示：</strong><span id="recipe-health-display"></span></p>
+                <p><strong>簡介：</strong><span id="recipe-intro-display"></span></p>
+            </div>
+            <hr>
+            <h3>烹飪步驟</h3>
+            <div id="recipe-steps-container">
+                </div>
+
+            <div class="navigation-buttons">
+                <button class="nav-back" onclick="prevStep()">上一步</button>
+                <button class="nav-next" onclick="nextStep()">下一步</button>
+            </div>
+
+            <div class="bottom-actions">
+                <button class="favorite-btn" onclick="addToFavorites()">⭐ 加入最愛</button>
+                <button class="shopping-btn" onclick="generateShoppingList()">🛒 產生購物清單</button>
+            </div>
+        </section>
+
+        <!-- 在 main.container 下方新增收藏頁 section -->
+        <section id="favorites-page" class="section">
+            <h2>我的收藏</h2>
+            <div class="recipe-list" id="favorites-container"></div>
+            <button onclick="showPage('scan-page')" style="margin-top:30px;">返回主頁</button>
+        </section>
+
+        <!-- 新增購物清單頁面 -->
+        <section id="shopping-list-page" class="section">
+            <h2>購物清單</h2>
+            <ul id="shopping-list-container" style="font-size:1.3em;line-height:2;"></ul>
+            <button onclick="showPage('scan-page')" style="margin-top:30px;">返回主頁</button>
+        </section>
+    </main>
+
+    <div id="recognition-modal">
+        <div class="modal-content">
+            <h3>OpenRouter 識別結果</h3>
+            <p class="recognized-items">您掃描到了：<span id="modal-recognized-ingredients"></span></p>
+            <div class="modal-buttons">
+                <button class="modal-confirm-btn" onclick="confirmRecognition()">確認</button>
+                <button class="modal-re-scan-btn" onclick="hideRecognitionModal()">重新掃描/修改</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading-indicator">
+        <div class="spinner"></div>
+        <p>AI 正在努力識別中，請稍候...</p>
+    </div>
+
+
+    <script>
+        // 全域變數宣告
+let currentPage = 'scan-page';
+let currentRecipe = null;
+let currentRecipeSteps = [];
+let currentStepIndex = 0;
+let voiceGuideEnabled = false;
+let videoStream = null; // 用於儲存攝像頭串流
+
+// ====== 全域 DOM 變數宣告 ======
+let startCameraButton, takePhotoButton, clearIdentifiedButton, confirmIngredientsButton, findRecipesManualButton, manualIngredientInput, cameraStream, scanOverlayText, canvas, ctx, identifiedIngredientsDiv, ingredientsDisplay, recipesContainer, recipeTitleDisplay, recipeIngredientsDisplay, recipeDifficultyDisplay, recipeTimeDisplay, recipeHealthDisplay, recipeIntroDisplay, recipeStepsContainer, topNavbar, navTitle, loadingIndicator, recognitionModal, modalRecognizedIngredients, commonIngredientsTagsContainer;
+let identifiedIngredients; // Set
+
+// OpenRouter API 配置
+const OPENROUTER_API_KEY = atob("c2stb3ItdjEtMzE2NjIwNGI1MjQ5MTg2MDFjMzMwNmY0YjFkMmVjYzAzZmZhMGMxNDQ4ODczNTZjODFjMmZiZjYzYzJlN2M4YQ=="); // **請替換為您的實際 API 金鑰！生產環境請勿直接暴露！**
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+// 選擇一個支援多模態輸入的 Gemma 模型或其變體。
+// 請務必查閱 OpenRouter 文檔獲取最新和最合適的模型ID。
+// 例如：可能會有類似 'google/gemma-vision' 或 'google/gemma-large-vision' 的模型，
+        // 或者需要搭配另一個視覺模型。這裡先用一個通用概念性的名稱。
+        const OPENROUTER_MODEL = 'meta-llama/llama-4-maverick:free'; // ←請改這一行
+
+
+        let mockRecipes = [
+  {
+    "name": "番茄炒蛋",
+    "keyIngredients": ["番茄", "tomato", "鸡蛋", "雞蛋", "egg"],
+    "ingredients": ["番茄", "雞蛋", "鹽", "油"],
+    "difficulty": "簡單",
+    "time": "10分鐘",
+    "health": "高蛋白",
+    "intro": "經典家常菜。",
+    "image": "tomato_egg.jpg",
+    "steps": [
+      { "number": 1, "text": "番茄切塊，雞蛋打散。", "image": "", "timer": "" },
+      { "number": 2, "text": "熱鍋加油，炒蛋至半熟取出。", "image": "", "timer": "" },
+      { "number": 3, "text": "炒番茄，加入蛋拌炒，加鹽調味。", "image": "", "timer": "" }
+    ]
+  }
+]; // 先宣告為空陣列
+
+        // 載入 recipes.json
+        async function loadRecipes() {
+            try {
+                const response = await fetch('recipes.json');
+if (!response.ok) throw new Error('載入食譜資料失敗');
+mockRecipes = await response.json();
+
+                // 重新生成常用食材標籤
+                updateCommonIngredients();
+                initializeCommonIngredientsTags();
+            } catch (e) {
+                alert('無法載入食譜資料：' + e.message);
+            }
+        }
+
+        // 重新計算常用食材
+        function updateCommonIngredients() {
+            window.commonIngredients = [];
+        }
+
+        // DOMContentLoaded 時載入食譜
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM 元素快取
+            startCameraButton = document.getElementById('start-camera-btn');
+            takePhotoButton = document.getElementById('take-photo-btn');
+            clearIdentifiedButton = document.getElementById('clear-identified-btn');
+            confirmIngredientsButton = document.getElementById('confirm-ingredients-btn');
+            findRecipesManualButton = document.getElementById('find-recipes-manual-btn');
+            manualIngredientInput = document.getElementById('manual-ingredient-input');
+            cameraStream = document.getElementById('camera-stream');
+            scanOverlayText = document.getElementById('scan-overlay-text');
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+            identifiedIngredientsDiv = document.getElementById('identified-ingredients');
+            ingredientsDisplay = document.getElementById('ingredients-display');
+            recipesContainer = document.getElementById('recipes-container');
+            recipeTitleDisplay = document.getElementById('recipe-title-display');
+            recipeIngredientsDisplay = document.getElementById('recipe-ingredients-display');
+            recipeDifficultyDisplay = document.getElementById('recipe-difficulty-display');
+            recipeTimeDisplay = document.getElementById('recipe-time-display');
+            recipeHealthDisplay = document.getElementById('recipe-health-display');
+            recipeIntroDisplay = document.getElementById('recipe-intro-display');
+            recipeStepsContainer = document.getElementById('recipe-steps-container');
+            topNavbar = document.getElementById('top-navbar');
+            navTitle = document.getElementById('nav-title');
+            loadingIndicator = document.getElementById('loading-indicator');
+            recognitionModal = document.getElementById('recognition-modal');
+            modalRecognizedIngredients = document.getElementById('modal-recognized-ingredients');
+            commonIngredientsTagsContainer = document.getElementById('common-ingredients-tags');
+            identifiedIngredients = new Set();
+
+            // 在頂部導航欄加一個「我的收藏」按鈕
+            const favoritesBtn = document.createElement('button');
+            favoritesBtn.textContent = '❤️ 我的收藏';
+            favoritesBtn.onclick = showFavorites;
+            topNavbar.appendChild(favoritesBtn);
+
+            // 攝像頭控制
+            startCameraButton.addEventListener('click', startCamera);
+            takePhotoButton.addEventListener('click', takePhoto);
+            clearIdentifiedButton.addEventListener('click', clearIdentifiedIngredients);
+            confirmIngredientsButton.addEventListener('click', findRecipesFromIdentified);
+            findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
+
+            loadRecipes();
+        });
+
+
+        // 頁面導航功能
+        function showPage(pageId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            currentPage = pageId;
+
+            // 根據頁面顯示/隱藏導航欄
+            if (pageId === 'scan-page') {
+                topNavbar.style.display = 'none';
+            } else {
+                topNavbar.style.display = 'flex';
+                // 更新導航欄標題
+                if (pageId === 'recipe-list-page') {
+                    navTitle.textContent = '推薦食譜';
+                } else if (pageId === 'recipe-detail-page' && currentRecipe) {
+                    navTitle.textContent = currentRecipe.name;
+                }
+            }
+        }
+
+        // 返回上一頁
+        function goBack() {
+            if (currentPage === 'recipe-list-page') {
+                showPage('scan-page');
+                // 停止攝像頭串流 (如果正在運行)
+                stopCamera();
+            } else if (currentPage === 'recipe-detail-page') {
+                showPage('recipe-list-page');
+            }
+        }
+
+        async function startCamera() {
+            try {
+                // 檢查是否有攝像頭權限
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); // 優先使用後置攝像頭
+                cameraStream.srcObject = stream;
+                videoStream = stream; // 保存串流以便停止
+                cameraStream.style.display = 'block';
+                scanOverlayText.style.display = 'none';
+                takePhotoButton.style.display = 'block';
+                startCameraButton.style.display = 'none';
+            } catch (err) {
+                console.error("無法開啟攝像頭：", err);
+                alert("無法開啟攝像頭，請檢查您的設備或瀏覽器權限設置。");
+                scanOverlayText.innerHTML = '<span class="icon">❌</span><p>無法開啟攝像頭。</p><p>請確認已授予權限。</p>';
+            }
+        }
+
+        function stopCamera() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+                cameraStream.srcObject = null;
+                cameraStream.style.display = 'none';
+                scanOverlayText.style.display = 'block';
+                takePhotoButton.style.display = 'none';
+                startCameraButton.style.display = 'block';
+            }
+        }
+
+        async function takePhoto() {
+            if (!videoStream) {
+                alert("請先開啟攝像頭！");
+                return;
+            }
+
+            // 取得原始影像尺寸
+            const originalWidth = cameraStream.videoWidth;
+            const originalHeight = cameraStream.videoHeight;
+
+            // 設定最大尺寸
+            const maxSize = 1000;
+            let targetWidth = originalWidth;
+            let targetHeight = originalHeight;
+
+            // 計算縮放比例
+            if (originalWidth > maxSize || originalHeight > maxSize) {
+                const scale = Math.min(maxSize / originalWidth, maxSize / originalHeight);
+                targetWidth = Math.round(originalWidth * scale);
+                targetHeight = Math.round(originalHeight * scale);
+            }
+
+            // 調整 canvas 尺寸
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            ctx.drawImage(cameraStream, 0, 0, targetWidth, targetHeight);
+
+            // 將 canvas 內容轉換為 Base64 數據 URL
+            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8); // 0.8 是圖像品質
+
+            showLoading(); // 顯示加載指示器
+            await analyzeImageWithOpenRouter(imageDataUrl); // 調用 OpenRouter API 進行分析
+        }
+
+        async function analyzeImageWithOpenRouter(imageDataUrl) {
+            try {
+                // 提取 Base64 數據，移除前綴 "data:image/jpeg;base64,"
+                const base64Image = imageDataUrl.split(',')[1];
+
+                const response = await fetch(OPENROUTER_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: OPENROUTER_MODEL,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: [
+                                    {
+                                        type: 'text',
+                                        text: 'Use 、 to separate the food type and reply in Traditional Chinese. e.g: 蘋果、香蕉、牛奶。   如果沒有找到任何食物，請回答「無」。請用原始語言輸出食材名稱，不要翻譯。'
+                                    },
+                                    {
+                                        type: 'image_url',
+                                        image_url: {
+                                            url: `data:image/jpeg;base64,${base64Image}`
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('OpenRouter API 錯誤:', errorData);
+                    alert('OpenRouter API 錯誤: ' + JSON.stringify(errorData));
+                    throw new Error(`OpenRouter API 呼叫失敗: ${response.status} ${response.statusText} - ${errorData.message || ''}`);
+                }
+
+                const data = await response.json();
+                console.log('OpenRouter API 回應:', data);
+
+                let recognizedText = '無';
+                if (data.choices && data.choices.length > 0 && data.choices[0].message && data.choices[0].message.content) {
+                    recognizedText = data.choices[0].message.content.trim();
+                }
+
+                // 不顯示任何彈窗，直接處理
+                if (recognizedText && recognizedText !== '無') {
+                    const ingredients = recognizedText.split('、').map(item => item.trim()).filter(Boolean);
+                    ingredients.forEach(addIngredient);
+                    filterAndDisplayRecipes(ingredients);
+                    hideLoading();
+                } else {
+                    alert('沒有識別到食材，請嘗試重新掃描或手動輸入。');
+                    hideLoading();
+                }
+
+            } catch (error) {
+                console.error('識別圖片時發生錯誤:', error);
+                alert('識別食材時發生錯誤，請稍後再試。\n' + error.message);
+                hideLoading();
+            }
+        }
+
+        function showLoading() {
+            loadingIndicator.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            loadingIndicator.style.display = 'none';
+        }
+
+        function showRecognitionModal(recognizedItems) {
+            modalRecognizedIngredients.textContent = typeof recognizedItems === 'string' ? recognizedItems : JSON.stringify(recognizedItems);
+            recognitionModal.style.display = 'flex';
+            hideLoading(); // ←加這一行，確保彈窗出現時 loading 一定消失
+        }
+
+        function hideRecognitionModal() {
+            recognitionModal.style.display = 'none'; // 隱藏模態框
+            hideLoading(); // 在關閉模態框時隱藏加載
+        }
+
+        function confirmRecognition() {
+            const recognizedItemsText = modalRecognizedIngredients.textContent;
+            hideRecognitionModal(); // 隱藏模態框
+
+            if (recognizedItemsText && recognizedItemsText !== '無') {
+                // 1. 加入食材
+                const ingredients = [];
+                recognizedItemsText.split('、').forEach(item => {
+                    const trimmedItem = item.trim();
+                    if (trimmedItem) {
+                        addIngredient(trimmedItem);
+                        ingredients.push(trimmedItem);
+                    }
+                });
+
+                // 2. 顯示「識別完成」提示
+                showTemporaryMessage('識別完成，正在為您尋找食譜...');
+
+                // 3. 直接搜尋並顯示食譜
+                setTimeout(() => {
+                    filterAndDisplayRecipes(ingredients);
+                    hideLoading();
+                }, 1200); // 1.2秒後跳转，讓使用者看到提示
+            } else {
+                alert('沒有識別到食材，請嘗試重新掃描或手動輸入。');
+                hideLoading();
+            }
+        }
+
+        // 顯示短暫訊息
+        function showTemporaryMessage(msg) {
+            let msgDiv = document.createElement('div');
+            msgDiv.textContent = msg;
+            msgDiv.style.position = 'fixed';
+            msgDiv.style.top = '30%';
+            msgDiv.style.left = '50%';
+            msgDiv.style.transform = 'translate(-50%, -50%)';
+            msgDiv.style.background = 'rgba(0,0,0,0.8)';
+            msgDiv.style.color = '#fff';
+            msgDiv.style.padding = '30px 50px';
+            msgDiv.style.borderRadius = '15px';
+            msgDiv.style.fontSize = '2em';
+            msgDiv.style.zIndex = 2000;
+            document.body.appendChild(msgDiv);
+            setTimeout(() => {
+                msgDiv.remove();
+            }, 1000);
+        }
+
+        // 添加食材到列表
+        function addIngredient(ingredientName) {
+            const normalizedIngredient = ingredientName.toLowerCase(); // 統一小寫
+
+            if (!identifiedIngredients.has(normalizedIngredient)) {
+                identifiedIngredients.add(normalizedIngredient);
+                updateIdentifiedIngredientsDisplay();
+                // 顯示確認按鈕和清空按鈕
+                identifiedIngredientsDiv.style.display = 'block';
+                confirmIngredientsButton.style.display = 'block';
+            }
+            manualIngredientInput.value = ''; // 清空手動輸入框
+        }
+
+        // 更新顯示已識別食材
+        function updateIdentifiedIngredientsDisplay() {
+            if (identifiedIngredients.size === 0) {
+                ingredientsDisplay.textContent = '無';
+                identifiedIngredientsDiv.style.display = 'none';
+                confirmIngredientsButton.style.display = 'none';
+            } else {
+                ingredientsDisplay.textContent = Array.from(identifiedIngredients).map(item => {
+                    // 將首字母大寫以提高可讀性
+                    return item.charAt(0).toUpperCase() + item.slice(1);
+                }).join('、');
+                identifiedIngredientsDiv.style.display = 'block';
+                confirmIngredientsButton.style.display = 'block';
+            }
+        }
+
+        // 清空已識別食材
+        function clearIdentifiedIngredients() {
+            identifiedIngredients.clear();
+            updateIdentifiedIngredientsDisplay();
+        }
+
+        // 手動添加食材
+        function addManualIngredient() {
+            const input = manualIngredientInput.value.trim();
+            if (input) {
+                input.split(/[,、\s]+/).forEach(item => { // 支持逗號、頓號或空格分隔
+                    if (item) addIngredient(item);
+                });
+            } else {
+                alert('請輸入食材名稱！');
+            }
+        }
+
+        // 根據已識別的食材查找食譜
+        function findRecipesFromIdentified() {
+            if (identifiedIngredients.size === 0) {
+                alert('請先掃描或手動輸入食材！');
+                return;
+            }
+            const ingredientsArray = Array.from(identifiedIngredients);
+            filterAndDisplayRecipes(ingredientsArray);
+        }
+
+        // 根據手動輸入的食材查找食譜
+        function findRecipesFromManualInput() {
+            const input = manualIngredientInput.value.trim();
+            const selectedTags = Array.from(commonIngredientsTagsContainer.children)
+                                    .filter(tag => tag.classList.contains('selected')) // 如果有選中狀態，這裡可以擴展
+                                    .map(tag => tag.textContent);
+
+            let ingredientsToSearch = [];
+            if (input) {
+                ingredientsToSearch = ingredientsToSearch.concat(input.split(/[,、\s]+/).filter(item => item !== ''));
+            }
+            ingredientsToSearch = ingredientsToSearch.concat(selectedTags);
+
+            if (ingredientsToSearch.length === 0) {
+                alert('請輸入或選擇食材！');
+                return;
+            }
+
+            filterAndDisplayRecipes(ingredientsToSearch);
+        }
+
+
+        // 簡繁轉換（簡易版，只處理常見字，實際可用第三方庫如 opencc-js）
+function toSimplified(str) {
+    const map = {'雞':'鸡','蛋':'蛋','番茄':'番茄','蔥':'葱','薑':'姜','蒜':'蒜','飯':'饭','麵':'面','魚':'鱼','豬':'猪','牛':'牛','湯':'汤','麵包':'面包','蘋果':'苹果','馬鈴薯':'马铃薯','紅蘿蔔':'红萝卜'};
+    return str.split('').map(c => map[c] || c).join('');
+}
+
+// 過濾並顯示食譜
+function filterAndDisplayRecipes(inputIngredients) {
+    const normalizedInput = inputIngredients.map(item => item.toLowerCase());
+    // 加入簡體比對
+    const normalizedInputWithSimple = normalizedInput.concat(normalizedInput.map(toSimplified));
+
+    const foundRecipes = mockRecipes.filter(recipe => {
+        return recipe.keyIngredients.some(keyIng => {
+            const keyIngLower = keyIng.toLowerCase();
+            return normalizedInputWithSimple.includes(keyIngLower) || normalizedInputWithSimple.includes(toSimplified(keyIngLower));
+        });
+    });
+
+    recipesContainer.innerHTML = ''; // 清空現有食譜
+
+    if (foundRecipes.length > 0) {
+        foundRecipes.forEach(recipe => {
+            const card = document.createElement('div');
+            card.classList.add('recipe-card');
+            card.innerHTML = `
+                <img src="${recipe.image}" alt="${recipe.name}">
+                <div class="recipe-card-content">
+                    <h3>${recipe.name}</h3>
+                    <p><strong>難度:</strong> ${recipe.difficulty}</p>
+                    <p><strong>時間:</strong> ${recipe.time}</p>
+                    <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
+                    <div class="tags">
+                        ${recipe.keyIngredients.map(ing => `<span>${ing}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+            card.onclick = () => showRecipeDetail(recipe);
+            recipesContainer.appendChild(card);
+        });
+        showPage('recipe-list-page');
+        stopCamera();
+    } else {
+        alert('很抱歉，沒有找到符合您食材的食譜。請嘗試調整食材列表。');
+    }
+}
+
+        // 顯示食譜詳情
+        function showRecipeDetail(recipe) {
+            currentRecipe = recipe;
+            currentRecipeSteps = recipe.steps;
+            currentStepIndex = 0; // 重置步驟索引
+            navTitle.textContent = recipe.name; // 更新頂部導航欄標題
+
+            recipeTitleDisplay.textContent = recipe.name;
+            recipeIngredientsDisplay.textContent = recipe.ingredients.join('、');
+            recipeDifficultyDisplay.textContent = recipe.difficulty;
+            recipeTimeDisplay.textContent = recipe.time;
+            recipeHealthDisplay.textContent = recipe.health;
+            recipeIntroDisplay.textContent = recipe.intro;
+
+            displayCurrentStep(); // 顯示第一個步驟
+            showPage('recipe-detail-page');
+        }
+
+        // 顯示當前步驟
+        function displayCurrentStep() {
+            recipeStepsContainer.innerHTML = '';
+            if (currentRecipeSteps.length === 0) {
+                recipeStepsContainer.innerHTML = '<p style="text-align: center; font-size: 1.5em; color: #dc3545;">沒有烹飪步驟信息。</p>';
+                return;
+            }
+
+            const step = currentRecipeSteps[currentStepIndex];
+            const stepDiv = document.createElement('div');
+            stepDiv.classList.add('recipe-step');
+            stepDiv.innerHTML = `
+                <div class="step-number">步驟 ${step.number} / ${currentRecipeSteps.length}</div>
+                ${step.image ? `<div class="step-image"><img src="${step.image}" alt="步驟 ${step.number} 圖片"></div>` : ''}
+                <div class="step-text">${step.text}</div>
+                ${step.timer ? `<div class="step-timer">計時器：${step.timer}</div>` : ''}
+            `;
+            recipeStepsContainer.appendChild(stepDiv);
+
+            // 更新導航按鈕狀態
+            document.querySelector('.nav-back').disabled = (currentStepIndex === 0);
+            document.querySelector('.nav-next').disabled = (currentStepIndex === currentRecipeSteps.length - 1);
+
+            // 如果語音導覽啟用，則朗讀當前步驟
+            if (voiceGuideEnabled) {
+                speakText(`步驟 ${step.number}：${step.text}`);
+                if (step.timer) {
+                    speakText(`計時器：${step.timer}`);
+                }
+            }
+        }
+
+        // 上一步
+        function prevStep() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                displayCurrentStep();
+            }
+        }
+
+        // 下一步
+        function nextStep() {
+            if (currentStepIndex < currentRecipeSteps.length - 1) {
+                currentStepIndex++;
+                displayCurrentStep();
+            }
+        }
+
+        // 語音導覽開關
+        function toggleVoiceGuide() {
+            voiceGuideEnabled = !voiceGuideEnabled;
+            alert(`語音導覽已${voiceGuideEnabled ? '開啟' : '關閉'}`);
+            // 可以改變按鈕圖示或顏色來表示狀態
+        }
+
+        // 文本轉語音功能
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-TW'; // 設定語音語言為繁體中文
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.warn('您的瀏覽器不支持 Web Speech API。');
+            }
+        }
+
+        // 收藏功能 (佔位符)
+        function addToFavorites() {
+            if (currentRecipe) {
+                let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+                // 避免重複收藏
+                if (!favorites.some(r => r.name === currentRecipe.name)) {
+                    favorites.push(currentRecipe);
+                    localStorage.setItem('favorites', JSON.stringify(favorites));
+                    alert(`已將「${currentRecipe.name}」加入您的最愛！`);
+                } else {
+                    alert(`「${currentRecipe.name}」已在您的最愛中！`);
+                }
+            }
+        }
+
+        // 顯示收藏頁
+        function showFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            const container = document.getElementById('favorites-container');
+            container.innerHTML = '';
+            if (favorites.length === 0) {
+                container.innerHTML = '<p style="text-align:center;font-size:1.5em;">暫無收藏的食譜。</p>';
+            } else {
+                favorites.forEach(recipe => {
+                    const card = document.createElement('div');
+                    card.classList.add('recipe-card');
+                    card.innerHTML = `
+                        <img src="${recipe.image}" alt="${recipe.name}">
+                        <div class="recipe-card-content">
+                            <h3>${recipe.name}</h3>
+                            <p><strong>難度:</strong> ${recipe.difficulty}</p>
+                            <p><strong>時間:</strong> ${recipe.time}</p>
+                            <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
+                            <div class="tags">
+                                ${recipe.keyIngredients.map(ing => `<span>${ing}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                    card.onclick = () => showRecipeDetail(recipe);
+                    container.appendChild(card);
+                });
+            }
+            showPage('favorites-page');
+        }
+
+        function initializeCommonIngredientsTags() {
+            // 取得所有食譜的食材，統計出現次數，取前幾名作為常用食材
+            const ingredientCount = {};
+            mockRecipes.forEach(recipe => {
+                recipe.ingredients.forEach(ing => {
+                    ingredientCount[ing] = (ingredientCount[ing] || 0) + 1;
+                });
+            });
+            // 取出現次數最多的前12個食材
+            const sorted = Object.entries(ingredientCount).sort((a, b) => b[1] - a[1]);
+            const topIngredients = sorted.slice(0, 12).map(([ing]) => ing);
+
+            // 清空舊標籤
+            commonIngredientsTagsContainer.innerHTML = '';
+            topIngredients.forEach(ing => {
+                const tag = document.createElement('span');
+                tag.className = 'ingredient-tag';
+                tag.textContent = ing;
+                tag.onclick = function () {
+                    tag.classList.toggle('selected');
+                };
+                commonIngredientsTagsContainer.appendChild(tag);
+            });
+        }
+
+        function generateShoppingList() {
+    if (!currentRecipe) {
+        alert('請先選擇一個食譜！');
+        return;
+    }
+    const shoppingList = currentRecipe.ingredients || [];
+    const container = document.getElementById('shopping-list-container');
+    container.innerHTML = '';
+    if (shoppingList.length === 0) {
+        container.innerHTML = '<li>無需購買食材。</li>';
+    } else {
+        shoppingList.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            container.appendChild(li);
+        });
+    }
+    showPage('shopping-list-page');
+}
+    </script>
+</body>
+</html>
+
