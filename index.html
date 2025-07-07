@@ -1169,10 +1169,20 @@ function searchByKeyword() {
         found.forEach(recipe => {
             const card = document.createElement('div');
             card.classList.add('recipe-card');
+            // 顯示食材與份量
+            let ingredientsHtml = '';
+            if (Array.isArray(recipe.ingredients) && typeof recipe.ingredients[0] === 'object') {
+                ingredientsHtml = recipe.ingredients.map(ing => `<li>${ing.name}（${ing.amount}）</li>`).join('');
+            } else if (Array.isArray(recipe.ingredients)) {
+                ingredientsHtml = recipe.ingredients.map(ing => `<li>${ing}</li>`).join('');
+            }
             card.innerHTML = `
                 <img src="${recipe.image}" alt="${recipe.name}">
                 <div class="recipe-card-content">
                     <h3>${recipe.name}</h3>
+                    <ul style="padding-left:20px; margin:8px 0 8px 0; font-size:1em; color:#444;">
+                        ${ingredientsHtml}
+                    </ul>
                     <p><strong>難度:</strong> ${recipe.difficulty}</p>
                     <p><strong>時間:</strong> ${recipe.time}</p>
                     <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
