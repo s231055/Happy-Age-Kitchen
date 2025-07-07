@@ -392,12 +392,6 @@
     </header>
 
     <main class="container">
-        <!-- 請加在 <main class="container"> 最上方，scan-page section 前 -->
-<div style="text-align:center; margin-bottom:20px;">
-    <input id="keyword-search-input" type="text" placeholder="輸入關鍵詞搜尋食譜，如：蛋、豆腐、粥" style="font-size:1.3em; padding:10px; width:60%; border-radius:8px; border:1px solid #ccc;">
-    <button onclick="searchByKeyword()" style="font-size:1.2em; padding:10px 20px; border-radius:8px;">🔍 搜尋</button>
-</div>
-
         <section id="scan-page" class="section active">
             <h1>智慧食譜助手</h1>
             <button id="start-camera-btn">
@@ -417,13 +411,18 @@
                 <div class="icon">📷</div>
                 拍照識別食材
             </button>
-            <canvas id="canvas" style="display: none;"></canvas> 
-            <div id="identified-ingredients" style="display: none;">
+            <canvas id="canvas" style="display: none;"></canvas> <div id="identified-ingredients" style="display: none;">
                 <p>已識別食材：<span id="ingredients-display"></span></p>
                 <button id="clear-identified-btn" style="background-color: #dc3545; margin-top: 10px; width: auto; padding: 10px 20px; font-size: 1.2em; max-width: none;">清空已識別食材</button>
             </div>
 
             <button id="confirm-ingredients-btn" style="display: none;">確認食材，尋找食譜</button>
+
+            <div class="ingredient-input-group">
+                <label for="manual-ingredient-input">手動輸入食材 (若掃描不便)</label>
+                <input type="text" id="manual-ingredient-input" placeholder="例如：雞蛋、米飯">
+                <button onclick="addManualIngredient()">加入食材</button>
+            </div>
 
             <div class="ingredient-input-group">
                 <label>或從常用食材中選擇：</label>
@@ -520,101 +519,20 @@
     "name": "番茄炒蛋",
     "keyIngredients": ["番茄", "雞蛋"],
     "ingredients": [
-      { "name": "番茄", "amount": "2顆" },
-      { "name": "雞蛋", "amount": "3顆" },
-      { "name": "鹽", "amount": "適量" },
-      { "name": "油", "amount": "適量" }
-    ],
+  { "name": "番茄", "amount": "2顆" },
+  { "name": "雞蛋", "amount": "3顆" },
+  { "name": "鹽", "amount": "適量" },
+  { "name": "油", "amount": "適量" }
+],
     "difficulty": "簡單",
     "time": "10分鐘",
     "health": "高蛋白",
     "intro": "經典家常菜。",
-    "image": "images/tomato_egg.jpg",
+    "image": "tomato_egg.jpg",
     "steps": [
-      { "number": 1, "text": "番茄切塊，雞蛋打散。", "image": "images/tomato_egg_step1.jpg", "timer": "" },
-      { "number": 2, "text": "熱鍋加油，炒蛋至半熟取出。", "image": "images/tomato_egg_step2.jpg", "timer": "" },
-      { "number": 3, "text": "炒番茄，加入蛋拌炒，加鹽調味。", "image": "images/tomato_egg_step3.jpg", "timer": "" }
-    ]
-  },
-  {
-    "name": "蒸蛋",
-    "keyIngredients": ["雞蛋", "蛋", "egg"],
-    "ingredients": [
-      { "name": "雞蛋", "amount": "2顆" },
-      { "name": "水", "amount": "200ml" },
-      { "name": "鹽", "amount": "1/4小匙" },
-      { "name": "蔥花", "amount": "適量" }
-    ],
-    "difficulty": "簡單",
-    "time": "15分鐘",
-    "health": "滑嫩易吞",
-    "intro": "口感滑嫩，適合牙口不佳者。",
-    "image": "images/steamed_egg.jpg",
-    "steps": [
-      { "number": 1, "text": "雞蛋打散，加水與鹽攪拌均勻。", "image": "images/steamed_egg_step1.jpg", "timer": "" },
-      { "number": 2, "text": "過濾蛋液，倒入碗中，蓋上保鮮膜。", "image": "images/steamed_egg_step2.jpg", "timer": "" },
-      { "number": 3, "text": "大火蒸8-10分鐘，撒蔥花即可。", "image": "images/steamed_egg_step3.jpg", "timer": "" }
-    ]
-  },
-  {
-    "name": "豆腐羹",
-    "keyIngredients": ["豆腐", "tofu"],
-    "ingredients": [
-      { "name": "嫩豆腐", "amount": "1盒" },
-      { "name": "高湯", "amount": "400ml" },
-      { "name": "蛋液", "amount": "1顆" },
-      { "name": "鹽", "amount": "適量" },
-      { "name": "蔥花", "amount": "適量" }
-    ],
-    "difficulty": "簡單",
-    "time": "15分鐘",
-    "health": "高蛋白、易消化",
-    "intro": "嫩豆腐配蛋花，入口即化，適合長者。",
-    "image": "images/tofu_soup.jpg",
-    "steps": [
-      { "number": 1, "text": "嫩豆腐切小塊，放入高湯中煮沸。", "image": "images/tofu_soup_step1.jpg", "timer": "" },
-      { "number": 2, "text": "倒入蛋液攪拌，煮至蛋花浮起。", "image": "images/tofu_soup_step2.jpg", "timer": "" },
-      { "number": 3, "text": "加鹽調味，撒蔥花即可。", "image": "images/tofu_soup_step3.jpg", "timer": "" }
-    ]
-  },
-  {
-    "name": "南瓜粥",
-    "keyIngredients": ["南瓜", "米", "pumpkin", "rice"],
-    "ingredients": [
-      { "name": "南瓜", "amount": "200g" },
-      { "name": "大米", "amount": "80g" },
-      { "name": "水", "amount": "800ml" },
-      { "name": "鹽", "amount": "適量" }
-    ],
-    "difficulty": "簡單",
-    "time": "40分鐘",
-    "health": "軟爛易吞",
-    "intro": "南瓜與米熬煮成粥，香甜軟糯。",
-    "image": "images/pumpkin_porridge.jpg",
-    "steps": [
-      { "number": 1, "text": "南瓜去皮切小塊，大米洗淨。", "image": "images/pumpkin_porridge_step1.jpg", "timer": "" },
-      { "number": 2, "text": "鍋中加水，放入南瓜和大米，大火煮沸。", "image": "images/pumpkin_porridge_step2.jpg", "timer": "" },
-      { "number": 3, "text": "轉小火慢熬30分鐘至軟爛，加鹽調味。", "image": "images/pumpkin_porridge_step3.jpg", "timer": "" }
-    ]
-  },
-  {
-    "name": "魚肉蒸泥",
-    "keyIngredients": ["魚肉", "fish"],
-    "ingredients": [
-      { "name": "魚肉", "amount": "150g" },
-      { "name": "薑片", "amount": "2片" },
-      { "name": "鹽", "amount": "適量" },
-      { "name": "水", "amount": "少許" }
-    ],
-    "difficulty": "簡單",
-    "time": "25分鐘",
-    "health": "高蛋白、易咀嚼",
-    "intro": "魚肉蒸熟打泥，適合吞嚥困難者。",
-    "image": "images/fish_puree.jpg",
-    "steps": [
-      { "number": 1, "text": "魚肉去刺切塊，加薑片蒸熟。", "image": "images/fish_puree_step1.jpg", "timer": "" },
-      { "number": 2, "text": "取出魚肉，去薑片，加少量水打成泥。", "image": "images/fish_puree_step2.jpg", "timer": "" },
-      { "number": 3, "text": "加鹽調味即可食用。", "image": "images/fish_puree_step3.jpg", "timer": "" }
+      { "number": 1, "text": "番茄切塊，雞蛋打散。", "image": "", "timer": "" },
+      { "number": 2, "text": "熱鍋加油，炒蛋至半熟取出。", "image": "", "timer": "" },
+      { "number": 3, "text": "炒番茄，加入蛋拌炒，加鹽調味。", "image": "", "timer": "" }
     ]
   }
 ]; // 先宣告為空陣列
@@ -1038,10 +956,10 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
             currentStepIndex = 0; // 重置步驟索引
             navTitle.textContent = recipe.name; // 更新頂部導航欄標題
 
-            // 顯示食材與份量
+            recipeTitleDisplay.textContent = recipe.name;
             recipeIngredientsDisplay.textContent = recipe.ingredients
-      .map(ing => typeof ing === 'object' ? `${ing.name}（${ing.amount}）` : ing)
-      .join('、');
+    .map(ing => typeof ing === 'object' ? `${ing.name}（${ing.amount}）` : ing)
+    .join('、');
             recipeDifficultyDisplay.textContent = recipe.difficulty;
             recipeTimeDisplay.textContent = recipe.time;
             recipeHealthDisplay.textContent = recipe.health;
@@ -1174,9 +1092,7 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
             const ingredientCount = {};
             mockRecipes.forEach(recipe => {
                 recipe.ingredients.forEach(ing => {
-                    // 修正：取得正確的食材名稱
-                    const name = typeof ing === 'object' ? ing.name : ing;
-                    ingredientCount[name] = (ingredientCount[name] || 0) + 1;
+                    ingredientCount[ing] = (ingredientCount[ing] || 0) + 1;
                 });
             });
             // 取出現次數最多的前12個食材
@@ -1195,54 +1111,6 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
                 commonIngredientsTagsContainer.appendChild(tag);
             });
         }
-
-function searchRecipes(keyword) {
-    keyword = keyword.trim().toLowerCase();
-    if (!keyword) return [];
-    return mockRecipes.filter(recipe => {
-        // 比對名稱、介紹、主要食材、所有食材
-        const nameMatch = recipe.name && recipe.name.toLowerCase().includes(keyword);
-        const introMatch = recipe.intro && recipe.intro.toLowerCase().includes(keyword);
-        const keyIngMatch = recipe.keyIngredients && recipe.keyIngredients.some(k => k.toLowerCase().includes(keyword));
-        const ingMatch = recipe.ingredients && recipe.ingredients.some(i =>
-            (typeof i === 'object' ? i.name : i).toLowerCase().includes(keyword)
-        );
-        return nameMatch || introMatch || keyIngMatch || ingMatch;
-    });
-}
-
-function searchByKeyword() {
-    const input = document.getElementById('keyword-search-input').value.trim();
-    if (!input) {
-        alert('請輸入關鍵詞！');
-        return;
-    }
-    const found = searchRecipes(input);
-    recipesContainer.innerHTML = '';
-    if (found.length > 0) {
-        found.forEach(recipe => {
-            const card = document.createElement('div');
-            card.classList.add('recipe-card');
-            card.innerHTML = `
-                <img src="${recipe.image}" alt="${recipe.name}">
-                <div class="recipe-card-content">
-                    <h3>${recipe.name}</h3>
-                    <p><strong>難度:</strong> ${recipe.difficulty}</p>
-                    <p><strong>時間:</strong> ${recipe.time}</p>
-                    <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
-                    <div class="tags">
-                        ${recipe.keyIngredients.map(ing => `<span>${ing}</span>`).join('')}
-                    </div>
-                </div>
-            `;
-            card.onclick = () => showRecipeDetail(recipe);
-            recipesContainer.appendChild(card);
-        });
-        showPage('recipe-list-page');
-    } else {
-        alert('沒有找到相關食譜！');
-    }
-}
     </script>
 </body>
 </html>
