@@ -392,6 +392,12 @@
     </header>
 
     <main class="container">
+        <!-- 請加在 <main class="container"> 最上方，scan-page section 前 -->
+<div style="text-align:center; margin-bottom:20px;">
+    <input id="keyword-search-input" type="text" placeholder="輸入關鍵詞搜尋食譜，如：蛋、豆腐、辣" style="font-size:1.3em; padding:10px; width:60%; border-radius:8px; border:1px solid #ccc;">
+    <button onclick="searchByKeyword()" style="font-size:1.2em; padding:10px 20px; border-radius:8px;">🔍 搜尋</button>
+</div>
+
         <section id="scan-page" class="section active">
             <h1>智慧食譜助手</h1>
             <button id="start-camera-btn">
@@ -469,6 +475,13 @@
             <div class="recipe-list" id="favorites-container"></div>
             <button onclick="showPage('scan-page')" style="margin-top:30px;">返回主頁</button>
         </section>
+
+        <!-- 新增購物清單頁面 -->
+        <section id="shopping-list-page" class="section">
+            <h2>購物清單</h2>
+            <ul id="shopping-list-container" style="font-size:1.3em;line-height:2;"></ul>
+            <button onclick="showPage('scan-page')" style="margin-top:30px;">返回主頁</button>
+        </section>
     </main>
 
     <div id="recognition-modal">
@@ -489,41 +502,33 @@
 
 
     <script>
-        // JavaScript 用於控制頁面顯示邏輯、數據處理和互動
+        // 全域變數宣告
+let currentPage = 'scan-page';
+let currentRecipe = null;
+let currentRecipeSteps = [];
+let currentStepIndex = 0;
+let voiceGuideEnabled = false;
+let videoStream = null; // 用於儲存攝像頭串流
 
-        // 當前顯示的頁面
-        let currentPage = 'scan-page';
-        // 當前選中的食譜
-        let currentRecipe = null;
-        // 當前食譜的步驟
-        let currentRecipeSteps = [];
-        // 當前烹飪步驟索引
-        let currentStepIndex = 0;
-        // 語音導覽開關
-        let voiceGuideEnabled = false;
+// ====== 全域 DOM 變數宣告 ======
+let startCameraButton, takePhotoButton, clearIdentifiedButton, confirmIngredientsButton, findRecipesManualButton, manualIngredientInput, cameraStream, scanOverlayText, canvas, ctx, identifiedIngredientsDiv, ingredientsDisplay, recipesContainer, recipeTitleDisplay, recipeIngredientsDisplay, recipeDifficultyDisplay, recipeTimeDisplay, recipeHealthDisplay, recipeIntroDisplay, recipeStepsContainer, topNavbar, navTitle, loadingIndicator, recognitionModal, modalRecognizedIngredients, commonIngredientsTagsContainer;
+let identifiedIngredients; // Set
 
-        let videoStream = null; // 用於儲存攝像頭串流
-
-        // OpenRouter API 配置
-        const OPENROUTER_API_KEY = atob("c2stb3ItdjEtMzE2NjIwNGI1MjQ5MTg2MDFjMzMwNmY0YjFkMmVjYzAzZmZhMGMxNDQ4ODczNTZjODFjMmZiZjYzYzJlN2M4YQ=="); // **請替換為您的實際 API 金鑰！生產環境請勿直接暴露！**
-        const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-        // 選擇一個支援多模態輸入的 Gemma 模型或其變體。
-        // 請務必查閱 OpenRouter 文檔獲取最新和最合適的模型ID。
-        // 例如：可能會有類似 'google/gemma-vision' 或 'google/gemma-large-vision' 的模型，
+// OpenRouter API 配置
+const OPENROUTER_API_KEY = atob("c2stb3ItdjEtMzE2NjIwNGI1MjQ5MTg2MDFjMzMwNmY0YjFkMmVjYzAzZmZhMGMxNDQ4ODczNTZjODFjMmZiZjYzYzJlN2M4YQ=="); // **請替換為您的實際 API 金鑰！生產環境請勿直接暴露！**
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+// 選擇一個支援多模態輸入的 Gemma 模型或其變體。
+// 請務必查閱 OpenRouter 文檔獲取最新和最合適的模型ID。
+// 例如：可能會有類似 'google/gemma-vision' 或 'google/gemma-large-vision' 的模型，
         // 或者需要搭配另一個視覺模型。這裡先用一個通用概念性的名稱。
-        const OPENROUTER_MODEL = 'google/gemini-2.0-flash-exp:free'; // ←請改這一行
+        const OPENROUTER_MODEL = 'meta-llama/llama-4-maverick:free'; // ←請改這一行
 
 
         let mockRecipes = [
   {
     "name": "番茄炒蛋",
-    "keyIngredients": ["番茄", "雞蛋"],
-    "ingredients": [
-  { "name": "番茄", "amount": "2顆" },
-  { "name": "雞蛋", "amount": "3顆" },
-  { "name": "鹽", "amount": "適量" },
-  { "name": "油", "amount": "適量" }
-],
+    "keyIngredients": ["番茄", "tomato", "鸡蛋", "雞蛋", "egg"],
+    "ingredients": ["番茄", "雞蛋", "鹽", "油"],
     "difficulty": "簡單",
     "time": "10分鐘",
     "health": "高蛋白",
@@ -558,7 +563,49 @@ mockRecipes = await response.json();
         }
 
         // DOMContentLoaded 時載入食譜
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM 元素快取
+            startCameraButton = document.getElementById('start-camera-btn');
+            takePhotoButton = document.getElementById('take-photo-btn');
+            clearIdentifiedButton = document.getElementById('clear-identified-btn');
+            confirmIngredientsButton = document.getElementById('confirm-ingredients-btn');
+            findRecipesManualButton = document.getElementById('find-recipes-manual-btn');
+            manualIngredientInput = document.getElementById('manual-ingredient-input');
+            cameraStream = document.getElementById('camera-stream');
+            scanOverlayText = document.getElementById('scan-overlay-text');
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+            identifiedIngredientsDiv = document.getElementById('identified-ingredients');
+            ingredientsDisplay = document.getElementById('ingredients-display');
+            recipesContainer = document.getElementById('recipes-container');
+            recipeTitleDisplay = document.getElementById('recipe-title-display');
+            recipeIngredientsDisplay = document.getElementById('recipe-ingredients-display');
+            recipeDifficultyDisplay = document.getElementById('recipe-difficulty-display');
+            recipeTimeDisplay = document.getElementById('recipe-time-display');
+            recipeHealthDisplay = document.getElementById('recipe-health-display');
+            recipeIntroDisplay = document.getElementById('recipe-intro-display');
+            recipeStepsContainer = document.getElementById('recipe-steps-container');
+            topNavbar = document.getElementById('top-navbar');
+            navTitle = document.getElementById('nav-title');
+            loadingIndicator = document.getElementById('loading-indicator');
+            recognitionModal = document.getElementById('recognition-modal');
+            modalRecognizedIngredients = document.getElementById('modal-recognized-ingredients');
+            commonIngredientsTagsContainer = document.getElementById('common-ingredients-tags');
+            identifiedIngredients = new Set();
+
+            // 在頂部導航欄加一個「我的收藏」按鈕
+            const favoritesBtn = document.createElement('button');
+            favoritesBtn.textContent = '❤️ 我的收藏';
+            favoritesBtn.onclick = showFavorites;
+            topNavbar.appendChild(favoritesBtn);
+
+            // 攝像頭控制
+            startCameraButton.addEventListener('click', startCamera);
+            takePhotoButton.addEventListener('click', takePhoto);
+            clearIdentifiedButton.addEventListener('click', clearIdentifiedIngredients);
+            confirmIngredientsButton.addEventListener('click', findRecipesFromIdentified);
+            findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
+
             loadRecipes();
         });
 
@@ -595,43 +642,6 @@ mockRecipes = await response.json();
                 showPage('recipe-list-page');
             }
         }
-
-        // DOM 元素快取
-const startCameraButton = document.getElementById('start-camera-btn');
-const takePhotoButton = document.getElementById('take-photo-btn');
-const clearIdentifiedButton = document.getElementById('clear-identified-btn');
-const confirmIngredientsButton = document.getElementById('confirm-ingredients-btn');
-const findRecipesManualButton = document.getElementById('find-recipes-manual-btn');
-const manualIngredientInput = document.getElementById('manual-ingredient-input');
-const cameraStream = document.getElementById('camera-stream');
-const scanOverlayText = document.getElementById('scan-overlay-text');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const identifiedIngredientsDiv = document.getElementById('identified-ingredients');
-const ingredientsDisplay = document.getElementById('ingredients-display');
-const recipesContainer = document.getElementById('recipes-container');
-const recipeTitleDisplay = document.getElementById('recipe-title-display');
-const recipeIngredientsDisplay = document.getElementById('recipe-ingredients-display');
-const recipeDifficultyDisplay = document.getElementById('recipe-difficulty-display');
-const recipeTimeDisplay = document.getElementById('recipe-time-display');
-const recipeHealthDisplay = document.getElementById('recipe-health-display');
-const recipeIntroDisplay = document.getElementById('recipe-intro-display');
-const recipeStepsContainer = document.getElementById('recipe-steps-container');
-const topNavbar = document.getElementById('top-navbar');
-const navTitle = document.getElementById('nav-title');
-const loadingIndicator = document.getElementById('loading-indicator');
-const recognitionModal = document.getElementById('recognition-modal');
-const modalRecognizedIngredients = document.getElementById('modal-recognized-ingredients');
-const commonIngredientsTagsContainer = document.getElementById('common-ingredients-tags'); // ←加這一行
-// 已識別的食材集合
-const identifiedIngredients = new Set();
-
-        // 攝像頭控制
-startCameraButton.addEventListener('click', startCamera);
-takePhotoButton.addEventListener('click', takePhoto);
-clearIdentifiedButton.addEventListener('click', clearIdentifiedIngredients);
-confirmIngredientsButton.addEventListener('click', findRecipesFromIdentified);
-findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
 
         async function startCamera() {
             try {
@@ -715,7 +725,7 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
                                 content: [
                                     {
                                         type: 'text',
-                                        text: '請列出圖片中出現的食物或成分，並用「、」分隔，例如蘋果、香蕉、牛奶。如果沒有找到任何食物，請回答「無」。'
+                                        text: 'Use 、 to separate the food type and reply in Traditional Chinese. e.g: 蘋果、香蕉、牛奶。   如果沒有找到任何食物，請回答「無」。請用原始語言輸出食材名稱，不要翻譯。'
                                     },
                                     {
                                         type: 'image_url',
@@ -744,15 +754,12 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
                     recognizedText = data.choices[0].message.content.trim();
                 }
 
-                // 直接跳轉到相關食譜，不顯示彈窗
+                // 不顯示任何彈窗，直接處理
                 if (recognizedText && recognizedText !== '無') {
                     const ingredients = recognizedText.split('、').map(item => item.trim()).filter(Boolean);
                     ingredients.forEach(addIngredient);
-                    showTemporaryMessage('識別完成，正在為您尋找食譜...');
-                    setTimeout(() => {
-                        filterAndDisplayRecipes(ingredients);
-                        hideLoading();
-                    }, 1000); // 可依需求調整延遲
+                    filterAndDisplayRecipes(ingredients);
+                    hideLoading();
                 } else {
                     alert('沒有識別到食材，請嘗試重新掃描或手動輸入。');
                     hideLoading();
@@ -806,7 +813,7 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
                 setTimeout(() => {
                     filterAndDisplayRecipes(ingredients);
                     hideLoading();
-                }, 1200); // 1.2秒後跳轉，讓使用者看到提示
+                }, 1200); // 1.2秒後跳转，讓使用者看到提示
             } else {
                 alert('沒有識別到食材，請嘗試重新掃描或手動輸入。');
                 hideLoading();
@@ -913,41 +920,52 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
         }
 
 
-        // 過濾並顯示食譜
-        function filterAndDisplayRecipes(inputIngredients) {
-            const normalizedInput = inputIngredients.map(item => item.toLowerCase());
-            const foundRecipes = mockRecipes.filter(recipe => {
-                // 檢查食譜的關鍵食材是否都在輸入食材中
-                return recipe.keyIngredients.every(keyIng => normalizedInput.includes(keyIng.toLowerCase()));
-            });
+        // 簡繁轉換（簡易版，只處理常見字，實際可用第三方庫如 opencc-js）
+function toSimplified(str) {
+    const map = {'雞':'鸡','蛋':'蛋','番茄':'番茄','蔥':'葱','薑':'姜','蒜':'蒜','飯':'饭','麵':'面','魚':'鱼','豬':'猪','牛':'牛','湯':'汤','麵包':'面包','蘋果':'苹果','馬鈴薯':'马铃薯','紅蘿蔔':'红萝卜'};
+    return str.split('').map(c => map[c] || c).join('');
+}
 
-            recipesContainer.innerHTML = ''; // 清空現有食譜
+// 過濾並顯示食譜
+function filterAndDisplayRecipes(inputIngredients) {
+    const normalizedInput = inputIngredients.map(item => item.toLowerCase());
+    // 加入簡體比對
+    const normalizedInputWithSimple = normalizedInput.concat(normalizedInput.map(toSimplified));
 
-            if (foundRecipes.length > 0) {
-                foundRecipes.forEach(recipe => {
-                    const card = document.createElement('div');
-                    card.classList.add('recipe-card');
-                    card.innerHTML = `
-                        <img src="${recipe.image}" alt="${recipe.name}">
-                        <div class="recipe-card-content">
-                            <h3>${recipe.name}</h3>
-                            <p><strong>難度:</strong> ${recipe.difficulty}</p>
-                            <p><strong>時間:</strong> ${recipe.time}</p>
-                            <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
-                            <div class="tags">
-                                ${recipe.keyIngredients.map(ing => `<span>${ing}</span>`).join('')}
-                            </div>
-                        </div>
-                    `;
-                    card.onclick = () => showRecipeDetail(recipe);
-                    recipesContainer.appendChild(card);
-                });
-                showPage('recipe-list-page');
-                stopCamera(); // 轉到食譜列表頁時停止攝像頭
-            } else {
-                alert('很抱歉，沒有找到符合您食材的食譜。請嘗試調整食材列表。');
-            }
-        }
+    const foundRecipes = mockRecipes.filter(recipe => {
+        return recipe.keyIngredients.some(keyIng => {
+            const keyIngLower = keyIng.toLowerCase();
+            return normalizedInputWithSimple.includes(keyIngLower) || normalizedInputWithSimple.includes(toSimplified(keyIngLower));
+        });
+    });
+
+    recipesContainer.innerHTML = ''; // 清空現有食譜
+
+    if (foundRecipes.length > 0) {
+        foundRecipes.forEach(recipe => {
+            const card = document.createElement('div');
+            card.classList.add('recipe-card');
+            card.innerHTML = `
+                <img src="${recipe.image}" alt="${recipe.name}">
+                <div class="recipe-card-content">
+                    <h3>${recipe.name}</h3>
+                    <p><strong>難度:</strong> ${recipe.difficulty}</p>
+                    <p><strong>時間:</strong> ${recipe.time}</p>
+                    <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
+                    <div class="tags">
+                        ${recipe.keyIngredients.map(ing => `<span>${ing}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+            card.onclick = () => showRecipeDetail(recipe);
+            recipesContainer.appendChild(card);
+        });
+        showPage('recipe-list-page');
+        stopCamera();
+    } else {
+        alert('很抱歉，沒有找到符合您食材的食譜。請嘗試調整食材列表。');
+    }
+}
 
         // 顯示食譜詳情
         function showRecipeDetail(recipe) {
@@ -957,9 +975,7 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
             navTitle.textContent = recipe.name; // 更新頂部導航欄標題
 
             recipeTitleDisplay.textContent = recipe.name;
-            recipeIngredientsDisplay.textContent = recipe.ingredients
-    .map(ing => typeof ing === 'object' ? `${ing.name}（${ing.amount}）` : ing)
-    .join('、');
+            recipeIngredientsDisplay.textContent = recipe.ingredients.join('、');
             recipeDifficultyDisplay.textContent = recipe.difficulty;
             recipeTimeDisplay.textContent = recipe.time;
             recipeHealthDisplay.textContent = recipe.health;
@@ -1080,13 +1096,6 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
             showPage('favorites-page');
         }
 
-        // 在頂部導航欄加一個「我的收藏」按鈕
-        const topNavbar = document.getElementById('top-navbar');
-        const favoritesBtn = document.createElement('button');
-        favoritesBtn.textContent = '❤️ 我的收藏';
-        favoritesBtn.onclick = showFavorites;
-        topNavbar.appendChild(favoritesBtn);
-
         function initializeCommonIngredientsTags() {
             // 取得所有食譜的食材，統計出現次數，取前幾名作為常用食材
             const ingredientCount = {};
@@ -1111,6 +1120,76 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
                 commonIngredientsTagsContainer.appendChild(tag);
             });
         }
+
+        function generateShoppingList() {
+    if (!currentRecipe) {
+        alert('請先選擇一個食譜！');
+        return;
+    }
+    const shoppingList = currentRecipe.ingredients || [];
+    const container = document.getElementById('shopping-list-container');
+    container.innerHTML = '';
+    if (shoppingList.length === 0) {
+        container.innerHTML = '<li>無需購買食材。</li>';
+    } else {
+        shoppingList.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            container.appendChild(li);
+        });
+    }
+    showPage('shopping-list-page');
+}
+
+function searchRecipes(keyword) {
+    keyword = keyword.trim().toLowerCase();
+    if (!keyword) return [];
+
+    return mockRecipes.filter(recipe => {
+        // 比對名稱、介紹、主要食材、所有食材
+        return (
+            recipe.name.toLowerCase().includes(keyword) ||
+            recipe.intro.toLowerCase().includes(keyword) ||
+            (recipe.keyIngredients && recipe.keyIngredients.some(k => k.toLowerCase().includes(keyword))) ||
+            (recipe.ingredients && recipe.ingredients.some(i => i.toLowerCase().includes(keyword)))
+        );
+    });
+}
+
+// 關鍵詞搜尋食譜
+function searchByKeyword() {
+    const input = document.getElementById('keyword-search-input').value.trim();
+    if (!input) {
+        alert('請輸入關鍵詞！');
+        return;
+    }
+    const found = searchRecipes(input);
+    recipesContainer.innerHTML = '';
+    if (found.length > 0) {
+        found.forEach(recipe => {
+            const card = document.createElement('div');
+            card.classList.add('recipe-card');
+            card.innerHTML = `
+                <img src="${recipe.image}" alt="${recipe.name}">
+                <div class="recipe-card-content">
+                    <h3>${recipe.name}</h3>
+                    <p><strong>難度:</strong> ${recipe.difficulty}</p>
+                    <p><strong>時間:</strong> ${recipe.time}</p>
+                    <p><strong>簡介:</strong> ${recipe.intro.substring(0, 50)}...</p>
+                    <div class="tags">
+                        ${recipe.keyIngredients.map(ing => `<span>${ing}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+            card.onclick = () => showRecipeDetail(recipe);
+            recipesContainer.appendChild(card);
+        });
+        showPage('recipe-list-page');
+    } else {
+        alert('沒有找到相關食譜！');
+    }
+}
     </script>
 </body>
 </html>
+
