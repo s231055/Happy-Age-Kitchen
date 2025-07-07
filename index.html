@@ -411,18 +411,13 @@
                 <div class="icon">📷</div>
                 拍照識別食材
             </button>
-            <canvas id="canvas" style="display: none;"></canvas> <div id="identified-ingredients" style="display: none;">
+            <canvas id="canvas" style="display: none;"></canvas> 
+            <div id="identified-ingredients" style="display: none;">
                 <p>已識別食材：<span id="ingredients-display"></span></p>
                 <button id="clear-identified-btn" style="background-color: #dc3545; margin-top: 10px; width: auto; padding: 10px 20px; font-size: 1.2em; max-width: none;">清空已識別食材</button>
             </div>
 
             <button id="confirm-ingredients-btn" style="display: none;">確認食材，尋找食譜</button>
-
-            <div class="ingredient-input-group">
-                <label for="manual-ingredient-input">手動輸入食材 (若掃描不便)</label>
-                <input type="text" id="manual-ingredient-input" placeholder="例如：雞蛋、米飯">
-                <button onclick="addManualIngredient()">加入食材</button>
-            </div>
 
             <div class="ingredient-input-group">
                 <label>或從常用食材中選擇：</label>
