@@ -392,12 +392,7 @@
     </header>
 
     <main class="container">
-        <!-- 請加在 <main class="container"> 最上方，scan-page section 前 -->
-<div style="text-align:center; margin-bottom:20px;">
-    <input id="keyword-search-input" type="text" placeholder="輸入關鍵詞搜尋食譜，如：蛋、豆腐、辣" style="font-size:1.3em; padding:10px; width:60%; border-radius:8px; border:1px solid #ccc;">
-    <button onclick="searchByKeyword()" style="font-size:1.2em; padding:10px 20px; border-radius:8px;">🔍 搜尋</button>
-</div>
-
+        <!-- 請將這一段移到手動輸入食材的前面 -->
         <section id="scan-page" class="section active">
             <h1>智慧食譜助手</h1>
             <button id="start-camera-btn">
@@ -417,12 +412,19 @@
                 <div class="icon">📷</div>
                 拍照識別食材
             </button>
-            <canvas id="canvas" style="display: none;"></canvas> <div id="identified-ingredients" style="display: none;">
+            <canvas id="canvas" style="display: none;"></canvas>
+            <div id="identified-ingredients" style="display: none;">
                 <p>已識別食材：<span id="ingredients-display"></span></p>
                 <button id="clear-identified-btn" style="background-color: #dc3545; margin-top: 10px; width: auto; padding: 10px 20px; font-size: 1.2em; max-width: none;">清空已識別食材</button>
             </div>
 
             <button id="confirm-ingredients-btn" style="display: none;">確認食材，尋找食譜</button>
+
+            <!-- 關鍵字搜尋區塊，移到這裡 -->
+            <div style="text-align:center; margin-bottom:20px; margin-top:30px;">
+                <input id="keyword-search-input" type="text" placeholder="輸入關鍵詞搜尋食譜，如：蛋、豆腐、辣" style="font-size:1.3em; padding:10px; width:60%; border-radius:8px; border:1px solid #ccc;">
+                <button onclick="searchByKeyword()" style="font-size:1.2em; padding:10px 20px; border-radius:8px;">🔍 搜尋</button>
+            </div>
 
             <div class="ingredient-input-group">
                 <label for="manual-ingredient-input">手動輸入食材 (若掃描不便)</label>
@@ -432,8 +434,7 @@
 
             <div class="ingredient-input-group">
                 <label>或從常用食材中選擇：</label>
-                <div class="ingredient-tags" id="common-ingredients-tags">
-                    </div>
+                <div class="ingredient-tags" id="common-ingredients-tags"></div>
                 <button id="find-recipes-manual-btn">查找食譜</button>
             </div>
         </section>
