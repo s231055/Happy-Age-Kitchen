@@ -1174,7 +1174,9 @@ findRecipesManualButton.addEventListener('click', findRecipesFromManualInput);
             const ingredientCount = {};
             mockRecipes.forEach(recipe => {
                 recipe.ingredients.forEach(ing => {
-                    ingredientCount[ing] = (ingredientCount[ing] || 0) + 1;
+                    // 修正：取得正確的食材名稱
+                    const name = typeof ing === 'object' ? ing.name : ing;
+                    ingredientCount[name] = (ingredientCount[name] || 0) + 1;
                 });
             });
             // 取出現次數最多的前12個食材
