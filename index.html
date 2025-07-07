@@ -1143,21 +1143,24 @@ function filterAndDisplayRecipes(inputIngredients) {
 }
 
 function searchRecipes(keyword) {
-    keyword = keyword.trim().toLowerCase();
-    if (!keyword) return [];
+    // 支援多個關鍵字（空白、逗號、頓號分隔）
+    const keywords = keyword.split(/[\s,、]+/).map(k => k.trim().toLowerCase()).filter(Boolean);
+    if (keywords.length === 0) return [];
 
     return mockRecipes.filter(recipe => {
-        // 比對名稱、介紹、主要食材、所有食材
-        return (
-            recipe.name.toLowerCase().includes(keyword) ||
-            recipe.intro.toLowerCase().includes(keyword) ||
-            (recipe.keyIngredients && recipe.keyIngredients.some(k => k.toLowerCase().includes(keyword))) ||
-            (recipe.ingredients && recipe.ingredients.some(i => i.toLowerCase().includes(keyword)))
+        // 對每個關鍵字都要有命中才顯示（AND邏輯），如需OR邏輯可改為 some
+        return keywords.every(kw =>
+            recipe.name.toLowerCase().includes(kw) ||
+            recipe.intro.toLowerCase().includes(kw) ||
+            (recipe.keyIngredients && recipe.keyIngredients.some(k => k.toLowerCase().includes(kw))) ||
+            (recipe.ingredients && recipe.ingredients.some(i => {
+                if (typeof i === 'object') return i.name.toLowerCase().includes(kw);
+                return i.toLowerCase().includes(kw);
+            }))
         );
     });
 }
 
-// 關鍵詞搜尋食譜
 function searchByKeyword() {
     const input = document.getElementById('keyword-search-input').value.trim();
     if (!input) {
